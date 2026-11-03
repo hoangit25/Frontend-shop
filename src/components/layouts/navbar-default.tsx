@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 
 export default function Navbar() {
   return (
-    <header className="shopee-orange text-white text-xs">
+    <header className="shop-orange text-white text-xs">
       <div className="container mx-auto px-4">
         <div className="flex justify-between py-2">
           <div className="flex gap-4">

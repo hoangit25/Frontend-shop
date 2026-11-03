@@ -28,7 +28,7 @@ export default function LoginPage() {
       );
 
       setAccessToken(response.data.data.accessToken);
-      localStorage.setItem('is_login',`true`)
+      localStorage.setItem('is_login', `true`)
       setMessage("Đăng nhập thành công.");
     } catch (error) {
       const errorMessage = axios.isAxiosError<{ message?: string }>(error)
@@ -41,40 +41,38 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f4f5f7] px-4 py-8 font-sans">
-      <section className="w-full max-w-[400px] rounded-lg border border-gray-200 bg-white px-6 py-9 shadow-[0_8px_28px_rgba(0,0,0,0.06)] sm:px-8">
-        {/* Logo demo */}
+      <section className="w-full max-w-[400px] rounded-xl border border-gray-200 bg-white px-6 py-9 shadow-[0_8px_28px_rgba(0,0,0,0.06)] sm:px-8">
+
+        {/* Logo */}
         <div className="mb-5 flex justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#e8323b] text-2xl font-bold text-white">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#e8323b] text-2xl font-bold text-white shadow-md">
             A
           </div>
         </div>
-
-        <h1 className="text-center text-2xl font-bold text-[#222222]">
-          Account Login
-        </h1>
-
-        <p className="mb-7 mt-2 text-center text-sm text-gray-500">
+        <div className="mb-7 mt-2 text-center font-bold text-gray-500">
           Đăng nhập vào tài khoản của bạn
-        </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* Email */}
           <div>
             <label
-              htmlFor="username"
-              className="mb-2 block text-sm font-semibold text-gray-700"
+              htmlFor="email"
+              className="mb-2 block text-left font-semibold text-gray-700"
             >
               Email
             </label>
 
             <input
-              id="username"
-              type="text"
-              autoComplete="off"
-              placeholder="Nhập email"
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              placeholder="Nhập email của bạn"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="h-11 w-full rounded-md border border-gray-300 px-3 text-sm outline-none transition focus:border-[#e8323b] focus:ring-2 focus:ring-red-100"
+              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#e8323b] focus:ring-2 focus:ring-red-100"
             />
           </div>
 
@@ -82,26 +80,27 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="mb-2 block text-sm font-semibold text-gray-700"
+              className="mb-2 block text-left font-semibold text-gray-700"
             >
               Mật khẩu
             </label>
 
-            <div className="flex h-11 items-center rounded-md border border-gray-300 pr-3 transition focus-within:border-[#e8323b] focus-within:ring-2 focus-within:ring-red-100">
+            <div className="flex h-11 items-center rounded-lg border border-gray-300 transition focus-within:border-[#e8323b] focus-within:ring-2 focus-within:ring-red-100">
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
+                autoComplete="current-password"
+                required
                 placeholder="Nhập mật khẩu"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="h-full min-w-0 flex-1 rounded-md bg-transparent px-3 text-sm outline-none"
+                className="h-full min-w-0 flex-1 rounded-lg bg-transparent px-3 text-sm text-gray-800 outline-none placeholder:text-gray-400"
               />
 
               <button
                 type="button"
                 onClick={() => setShowPassword((current) => !current)}
-                className="shrink-0 text-xs text-gray-500 hover:text-gray-800"
+                className="mr-3 shrink-0 text-xs font-medium text-gray-500 transition hover:text-[#e8323b]"
               >
                 {showPassword ? "Ẩn" : "Hiện"}
               </button>
@@ -111,15 +110,17 @@ export default function LoginPage() {
           {/* Submit */}
           <button
             type="submit"
-            className="mt-3 h-11 w-full rounded-md bg-[#e8323b] text-sm font-semibold text-white transition hover:bg-[#cc252e] active:scale-[0.99]"
+            className="mt-2 h-11 w-full rounded-lg bg-[#e8323b] text-sm font-semibold text-white shadow-sm transition hover:bg-[#cc252e] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2"
           >
             Đăng nhập
           </button>
 
+          {/* Message */}
           {message && (
             <p
               role="status"
-              className="rounded-md bg-red-50 p-3 text-sm leading-5 text-red-700"
+              aria-live="polite"
+              className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm leading-5 text-red-700"
             >
               {message}
             </p>
@@ -127,28 +128,31 @@ export default function LoginPage() {
         </form>
 
         {/* Links */}
-        <div className="mt-5 flex items-center justify-between gap-3 text-xs">
+        <div className="mt-6 flex items-center justify-between gap-3 text-xs">
           <a
             href="#register"
-            className="text-gray-600 transition hover:text-[#e8323b]"
+            className="font-medium text-gray-600 transition hover:text-[#e8323b]"
           >
             Tạo tài khoản mới
           </a>
 
           <a
             href="#help"
-            className="text-gray-600 transition hover:text-[#e8323b]"
+            className="font-medium text-gray-600 transition hover:text-[#e8323b]"
           >
-            Trợ giúp
+            Trợ giúp?
           </a>
         </div>
 
-        <div className="mt-7 border-t border-gray-100 pt-4 text-center">
-          <p className="text-[10px] font-medium tracking-wide text-red-600">
+        {/* Footer */}
+        <div className="mt-7 border-t border-gray-100 pt-5 text-center">
+          <p className="text-[10px] font-semibold tracking-[1.5px] text-red-600">
             KẾT NỐI HỆ THỐNG XÁC THỰC
           </p>
         </div>
+
       </section>
     </main>
+
   );
 }
