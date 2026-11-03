@@ -1,0 +1,20 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+
+body {
+  font-family: "Roboto", sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+}
+
+.shopee-orange {
+  background-color: #ee4d2d;
+}
+
+.shopee-orange-text {
+  color: #ee4d2d;
+}
+
+.banner-gradient {
+  background: linear-gradient(to right, #ff4d2d, #ff7337);
+}
