@@ -40,7 +40,7 @@ interface RefreshTokenPayLoad{
 }
 
 interface LoginPayLoad{
-  username: string,
+  email: string,
   password:string
 }
 

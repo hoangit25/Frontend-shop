@@ -7,7 +7,7 @@ export default function GuestRoute() {
 
   // Điều kiện: Nếu ĐÃ có token => Chặn lại, đá sang trang sản phẩm/trang chủ
   if (accessToken) {
-    return <Navigate to="/products" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Thỏa mãn (chưa đăng nhập) => Cho phép các route con (Login, Register...) render

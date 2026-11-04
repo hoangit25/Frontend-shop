@@ -1,15 +1,16 @@
 
 import "../../App.css";
 import Navbar from './navbar-default'
-import HeroBanner from './heroBan-default'
-import Categories from './category-default'
+import { Outlet } from "react-router-dom";
 
 function LayoutDefault() {
   return (
     <div className="min-h-screen pb-20">
       <Navbar />
-      <HeroBanner />
-      <Categories />
+      <main>
+        <Outlet/>
+      </main>
+      
     </div>
   );
 }
