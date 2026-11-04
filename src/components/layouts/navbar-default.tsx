@@ -42,7 +42,7 @@ export default function Navbar() {
               <i className="fas fa-chevron-down text-[10px]" />
             </div>
 
-            <NavLink to="#" className="font-bold hover:opacity-80">
+            <NavLink to="/register" className="font-bold hover:opacity-80">
               Sign Up
             </NavLink>
 

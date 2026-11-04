@@ -85,7 +85,7 @@ const services: ServiceItem[] = [
                 <p className="font-bold text-xs">SHOPEE HOME</p>
 
                 <p className="font-black text-xl leading-tight">
-                  MUA HÀNG TO CÓ SHOPEE LO
+                  MUA HÀNG TO CÓ SHOP-MIMU LO
                 </p>
 
                 <p className="text-[10px] mt-1 italic">

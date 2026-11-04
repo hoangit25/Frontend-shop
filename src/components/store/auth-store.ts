@@ -22,5 +22,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   clearAuth: () => {
     set({ accessToken: null });
+    localStorage.removeItem('is_login');
   },
 }));

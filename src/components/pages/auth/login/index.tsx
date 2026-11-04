@@ -50,7 +50,7 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="mb-7 mt-2 text-center font-bold text-gray-500">
-          Đăng nhập vào tài khoản của bạn
+          Login with your account
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -112,7 +112,7 @@ export default function LoginPage() {
             type="submit"
             className="mt-2 h-11 w-full rounded-lg bg-[#e8323b] text-sm font-semibold text-white shadow-sm transition hover:bg-[#cc252e] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2"
           >
-            Đăng nhập
+            Login
           </button>
 
           {/* Message */}
@@ -133,14 +133,14 @@ export default function LoginPage() {
             href="#register"
             className="font-medium text-gray-600 transition hover:text-[#e8323b]"
           >
-            Tạo tài khoản mới
+            Sign Up
           </a>
 
           <a
             href="#help"
             className="font-medium text-gray-600 transition hover:text-[#e8323b]"
           >
-            Trợ giúp?
+            Help?
           </a>
         </div>
 
