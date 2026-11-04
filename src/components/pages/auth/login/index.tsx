@@ -3,11 +3,10 @@ import axios from "axios";
 import { useState, type FormEvent } from "react";
 import { useAuthStore } from "../../../store/auth-store";
 import { http } from "../../../utils/axios-config";
-
+import { Link } from "react-router-dom";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
@@ -52,13 +51,12 @@ export default function LoginPage() {
         <p className="text-xl mb-8">
           Don't have an account?
         </p>
-
-        <button
-          type="button"
+        <Link
+          to="/register"
           className="border-2 border-white text-white px-12 py-3 rounded-xl text-lg font-medium hover:bg-white hover:text-[#F15A24] transition-colors"
         >
           Registration
-        </button>
+        </Link>
       </div>
 
       {/* Right Panel - Login Form */}
@@ -166,15 +164,16 @@ export default function LoginPage() {
 
       {/* Mobile Only - Registration Prompt */}
       <div className="md:hidden mt-8 text-center pb-8">
-        <p className="text-gray-600">
+        <div className="text-gray-600">
           Don't have an account?{" "}
-          <a
-            href="/register"
+          <Link
+            to="/register"
             className="text-[#F15A24] font-bold hover:underline"
           >
             Registration
-          </a>
-        </p>
+          </Link>
+        </div>
+
       </div>
 
     </div>
