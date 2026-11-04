@@ -3,11 +3,10 @@ import axios from "axios";
 import { useState, type FormEvent } from "react";
 import { useAuthStore } from "../../../store/auth-store";
 import { http } from "../../../utils/axios-config";
-
+import { Link } from "react-router-dom";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
@@ -40,119 +39,144 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f4f5f7] px-4 py-8 font-sans">
-      <section className="w-full max-w-[400px] rounded-xl border border-gray-200 bg-white px-6 py-9 shadow-[0_8px_28px_rgba(0,0,0,0.06)] sm:px-8">
+     <div className="flex flex-col md:flex-row w-full min-h-[600px] bg-white overflow-hidden">
 
-        {/* Logo */}
-        <div className="mb-5 flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#e8323b] text-2xl font-bold text-white shadow-md">
-            A
-          </div>
-        </div>
-        <div className="mb-7 mt-2 text-center font-bold text-gray-500">
-          Login with your account
-        </div>
+      {/* Left Panel */}
+      <div className="hidden md:flex md:w-1/2 bg-[#F15A24] rounded-tr-[120px] rounded-br-[120px] flex-col items-center justify-center text-white px-12 text-center">
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <h1 className="text-5xl font-bold mb-4">
+          Hello, Welcome!
+        </h1>
 
-          {/* Email */}
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-2 block text-left font-semibold text-gray-700"
-            >
-              Email
-            </label>
+        <p className="text-xl mb-8">
+          Don't have an account?
+        </p>
 
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              placeholder="Nhập email của bạn"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#e8323b] focus:ring-2 focus:ring-red-100"
-            />
-          </div>
+        <Link
+          to="/register"
+          className="border-2 border-white text-white px-12 py-3 rounded-xl text-lg font-medium hover:bg-white hover:text-[#F15A24] transition-colors"
+        >
+          Registration
+        </Link>
+      </div>
 
-          {/* Password */}
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-2 block text-left font-semibold text-gray-700"
-            >
-              Mật khẩu
-            </label>
+      {/* Right Panel - Login Form */}
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-8 md:px-24">
 
-            <div className="flex h-11 items-center rounded-lg border border-gray-300 transition focus-within:border-[#e8323b] focus-within:ring-2 focus-within:ring-red-100">
+        <div className="w-full max-w-md">
+
+          <h2 className="text-4xl font-bold text-center text-[#1e1e1e] mb-12">
+            Login
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+
+            {/* Username */}
+            <div className="relative">
               <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
+                type="text"
+                name="username"
+                value={email}
+                onChange={(e)=>setEmail(e.target.value)}
+                placeholder="Username"
                 required
-                placeholder="Nhập mật khẩu"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="h-full min-w-0 flex-1 rounded-lg bg-transparent px-3 text-sm text-gray-800 outline-none placeholder:text-gray-400"
+                className="w-full bg-[#E5E7EB] border-none rounded-lg px-6 py-4 pr-12 focus:outline-none focus:ring-2 focus:ring-[#F15A24] text-gray-700 placeholder-gray-500"
               />
+
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+                <i className="far fa-user text-xl"></i>
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <input
+                type="password"
+                name="password"
+                value={password}
+                onChange={(e)=>setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                className="w-full bg-[#E5E7EB] border-none rounded-lg px-6 py-4 pr-12 focus:outline-none focus:ring-2 focus:ring-[#F15A24] text-gray-700 placeholder-gray-500"
+              />
+
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+                <i className="fas fa-lock text-xl"></i>
+              </div>
+            </div>
+
+            {/* Forgot Password */}
+            <div className="text-center">
+              <a
+                href="#"
+                className="text-sm font-medium text-gray-600 hover:text-[#F15A24] hover:underline"
+              >
+                Forgot Password!
+              </a>
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              className="w-full bg-[#F15A24] text-white font-semibold py-4 rounded-lg shadow-lg hover:bg-[#D94A1B] transition-all text-lg mt-4"
+            >
+              Login
+            </button>
+
+          </form>
+
+          {/* Social Login */}
+          <div className="mt-12 text-center">
+
+            <p className="text-gray-600 mb-6">
+              Or login with social platforms
+            </p>
+
+            <div className="flex justify-center space-x-6">
 
               <button
                 type="button"
-                onClick={() => setShowPassword((current) => !current)}
-                className="mr-3 shrink-0 text-xs font-medium text-gray-500 transition hover:text-[#e8323b]"
+                aria-label="Login with Facebook"
+                className="w-12 h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                {showPassword ? "Ẩn" : "Hiện"}
+                <i className="fab fa-facebook-f text-gray-700 text-xl"></i>
               </button>
+
+              <button
+                type="button"
+                aria-label="Login with Google"
+                className="w-12 h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <i className="fab fa-google text-gray-700 text-xl"></i>
+              </button>
+
+              <button
+                type="button"
+                aria-label="Login with TikTok"
+                className="w-12 h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <i className="fab fa-tiktok text-gray-700 text-xl"></i>
+              </button>
+
             </div>
           </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            className="mt-2 h-11 w-full rounded-lg bg-[#e8323b] text-sm font-semibold text-white shadow-sm transition hover:bg-[#cc252e] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2"
-          >
-            Login
-          </button>
-
-          {/* Message */}
-          {message && (
-            <p
-              role="status"
-              aria-live="polite"
-              className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm leading-5 text-red-700"
-            >
-              {message}
-            </p>
-          )}
-        </form>
-
-        {/* Links */}
-        <div className="mt-6 flex items-center justify-between gap-3 text-xs">
-          <a
-            href="#register"
-            className="font-medium text-gray-600 transition hover:text-[#e8323b]"
-          >
-            Sign Up
-          </a>
-
-          <a
-            href="#help"
-            className="font-medium text-gray-600 transition hover:text-[#e8323b]"
-          >
-            Help?
-          </a>
         </div>
+      </div>
 
-        {/* Footer */}
-        <div className="mt-7 border-t border-gray-100 pt-5 text-center">
-          <p className="text-[10px] font-semibold tracking-[1.5px] text-red-600">
-            KẾT NỐI HỆ THỐNG XÁC THỰC
-          </p>
+      {/* Mobile Only - Registration Prompt */}
+      <div className="md:hidden mt-8 text-center pb-8">
+        <div className="text-gray-600">
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="text-[#F15A24] font-bold hover:underline"
+          >
+            Registration
+          </Link>
         </div>
+      </div>
 
-      </section>
-    </main>
+    </div>
 
   );
 }
