@@ -25,27 +25,49 @@ export default function PasswordResetForm({
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Validate theo chuẩn Backend (tối thiểu 6 ký tự, gồm hoa, thường, số, ký tự đặc biệt)
-  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,20}$/;
-  const isPasswordValid = password.length >= 6 && regex.test(password);
+  // Validate từng điều kiện riêng lẻ để hiển thị checklist
+  const hasMinLength = password.length >= 6;
+  const hasMaxLength = password.length <= 20;
+  const hasLowercase = /[a-z]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecialChar = /[^A-Za-z\d\s]/.test(password);
+
+  const isPasswordValid =
+    hasMinLength && hasMaxLength && hasLowercase && hasUppercase && hasNumber && hasSpecialChar;
 
   const isPasswordMatched =
     password === confirmPassword && confirmPassword.length > 0;
 
   const isFormValid = isPasswordValid && isPasswordMatched;
 
+  // Danh sách điều kiện để render checklist
+  const passwordRules = [
+    { label: "At least 6 characters", met: hasMinLength },
+    { label: "No more than 20 characters", met: hasMaxLength },
+    { label: "Contains a lowercase letter (a-z)", met: hasLowercase },
+    { label: "Contains an uppercase letter (A-Z)", met: hasUppercase },
+    { label: "Contains a number (0-9)", met: hasNumber },
+    { label: "Contains a special character (!@#$...)", met: hasSpecialChar },
+  ];
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
-    if (password.length < 6) {
+    if (!hasMinLength) {
       setError("Mật khẩu phải từ 6 ký tự trở lên.");
       return;
     }
 
-    if (!regex.test(password)) {
+    if (!hasMaxLength) {
+      setError("Mật khẩu không được vượt quá 20 ký tự.");
+      return;
+    }
+
+    if (!isPasswordValid) {
       setError(
-        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt (@$!%*?&)."
+        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt."
       );
       return;
     }
@@ -164,9 +186,30 @@ export default function PasswordResetForm({
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 mt-2">
-              Must be at least 6 characters, including uppercase, lowercase, numbers, and symbols.
-            </p>
+            {/* Password Requirements Checklist */}
+            {password.length > 0 && (
+              <ul className="mt-3 space-y-1">
+                {passwordRules.map((rule) => (
+                  <li
+                    key={rule.label}
+                    className={`flex items-center gap-2 text-xs transition-colors duration-200 ${
+                      rule.met ? "text-green-600" : "text-gray-400"
+                    }`}
+                  >
+                    <span className="flex-shrink-0 text-sm leading-none">
+                      {rule.met ? "✅" : "○"}
+                    </span>
+                    {rule.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {password.length === 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                Must be 6–20 characters, including uppercase, lowercase, number, and special character.
+              </p>
+            )}
           </div>
 
           {/* Confirm Password */}
