@@ -17,48 +17,38 @@ interface ForgotPasswordSessionData {
   resetToken?: string;
 }
 
+/**
+ * Hàm helper đọc dữ liệu an toàn từ sessionStorage:
+ * - Tránh crash màn hình nếu dữ liệu bị lỗi/hỏng cú pháp.
+ * - Tự động xóa sạch dữ liệu rác khỏi sessionStorage khi gặp lỗi.
+ * - Log cảnh báo phục vụ debug.
+ */
+function getSavedSession(): ForgotPasswordSessionData | null {
+  try {
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    if (!saved) return null;
+    return JSON.parse(saved) as ForgotPasswordSessionData;
+  } catch (error) {
+    console.warn(
+      "Dữ liệu forgot_password_session không hợp lệ, đang xóa bộ nhớ tạm:",
+      error
+    );
+    sessionStorage.removeItem(SESSION_KEY);
+    return null;
+  }
+}
+
 export default function ForgotPassword() {
   const navigate = useNavigate();
 
-  // Load ban đầu từ sessionStorage để chống mất state khi F5
-  const [step, setStep] = useState<Step>(() => {
-    try {
-      const saved = sessionStorage.getItem(SESSION_KEY);
-      if (saved) {
-        const data: ForgotPasswordSessionData = JSON.parse(saved);
-        return data.step || "ENTER_EMAIL";
-      }
-    } catch {
-      // ignore JSON parse error
-    }
-    return "ENTER_EMAIL";
-  });
+  // Đọc 1 lần duy nhất khi khởi tạo
+  const savedSession = getSavedSession();
 
-  const [email, setEmail] = useState<string>(() => {
-    try {
-      const saved = sessionStorage.getItem(SESSION_KEY);
-      if (saved) {
-        const data: ForgotPasswordSessionData = JSON.parse(saved);
-        return data.email || "";
-      }
-    } catch {
-      // ignore
-    }
-    return "";
-  });
-
-  const [resetToken, setResetToken] = useState<string>(() => {
-    try {
-      const saved = sessionStorage.getItem(SESSION_KEY);
-      if (saved) {
-        const data: ForgotPasswordSessionData = JSON.parse(saved);
-        return data.resetToken || "";
-      }
-    } catch {
-      // ignore
-    }
-    return "";
-  });
+  const [step, setStep] = useState<Step>(savedSession?.step || "ENTER_EMAIL");
+  const [email, setEmail] = useState<string>(savedSession?.email || "");
+  const [resetToken, setResetToken] = useState<string>(
+    savedSession?.resetToken || ""
+  );
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -120,10 +110,13 @@ export default function ForgotPassword() {
   // ========================================================
   const handleVerifyOtp = async (otpCode: string) => {
     try {
-      const res = await http.post<{ data: { resetToken: string } }>("/auth/verify-otp", {
-        email: email.trim(),
-        otp: otpCode,
-      });
+      const res = await http.post<{ data: { resetToken: string } }>(
+        "/auth/verify-otp",
+        {
+          email: email.trim(),
+          otp: otpCode,
+        }
+      );
 
       const token = res.data?.data?.resetToken;
       setResetToken(token);
