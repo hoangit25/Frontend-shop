@@ -57,7 +57,6 @@ export default function LoginPage() {
 
         {/* Left Panel */}
         <section className="hidden md:flex md:w-1/2 lg:w-[45%] xl:w-[45%] bg-[#F15A24] rounded-r-[80px] lg:rounded-r-[120px] flex-col items-center justify-center text-white text-center px-8 lg:px-12 xl:px-16">
-
           <div className="max-w-lg">
             <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold mb-4">
               Hello, Welcome!
@@ -205,5 +204,6 @@ export default function LoginPage() {
 
       </div>
     </main>
+
   );
 }

@@ -6,7 +6,9 @@ import LayoutDefault from "../layouts/layout-default";
 
 // Import các trang
 import LoginPage from "../pages/auth/login";
-// import RegisterPage from "../pages/auth/register";
+import HomePage from "../pages/home/index"
+import RegisterPage from "../pages/auth/register";
+import ForgotPassword from "../pages/auth/forgotPassword/index"
 // import ProductsPage from "../pages/home/products";
 // import ProfilePage from "../pages/user/profile";
 
@@ -16,9 +18,24 @@ export const router = createBrowserRouter([
   // -------------------------------------------------------------
   {
     path: "/",
-    element: <LayoutDefault/>
+    element: <LayoutDefault/>,
+    children:[
+      {
+        index:true,
+        element:<HomePage/>
+      }
+      
+    ]
   },
-
+  {
+        path:"/register" ,      
+        element:<RegisterPage/>
+      },
+  {
+    path:"/forgot-password",
+    element:<ForgotPassword/>
+  },
+  
   // -------------------------------------------------------------
   // 2. GUEST ONLY ROUTES: Chỉ người CHƯA đăng nhập mới vào được
   // -------------------------------------------------------------
@@ -38,22 +55,7 @@ export const router = createBrowserRouter([
 
   // -------------------------------------------------------------
   // 3. PROTECTED ROUTES: Chỉ người ĐÃ đăng nhập mới vào được
-  // -------------------------------------------------------------
-//   {
-//     element: <ProtectedRoute />, // Guard kiểm tra tại đây
-//     children: [
-//       {
-//         path: "/profile",
-//         element: <div>Trang cá nhân của user (Private)</div>,
-//       },
-//       {
-//         path: "/orders",
-//         element: <div>Trang lịch sử đơn hàng (Private)</div>,
-//       },
-//     ],
-//   },
 
-  // 4. ROUTE 404 (Nếu không khớp trang nào)
   {
     path: "*",
     element: <div>404 - Trang không tồn tại</div>,
