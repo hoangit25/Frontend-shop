@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth-store";
 import { http } from "../utils/axios-config";
 
@@ -8,6 +9,7 @@ export default function Navbar() {
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
   const clearAuth = useAuthStore((state) => state.clearAuth);
+
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isLoggedIn = Boolean(accessToken && user);
 
@@ -18,7 +20,7 @@ export default function Navbar() {
     try {
       await http.post("/auth/logout");
     } catch {
-      // Cookie or token may already be invalid; still end the local session.
+      // End local session even if server logout fails.
     } finally {
       clearAuth();
       setIsLoggingOut(false);
@@ -27,16 +29,14 @@ export default function Navbar() {
   };
 
   return (
-    <header className="shop-orange text-white text-xs">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between py-2">
-          <div className="flex gap-4">
-            <NavLink to="#" className="hover:opacity-80">
-              Download
-            </NavLink>
+    <header className="shop-orange text-white">
+      <div className="container mx-auto px-3 sm:px-4">
 
-            <div className="border-l border-white opacity-30" />
-
+        {/* Top navigation - Desktop */}
+        <div className="hidden md:flex justify-between items-center py-2 text-xs">
+          <div className="flex items-center gap-4">
+            <NavLink to="#">Download</NavLink>
+            <span className="opacity-30">|</span>
             <div className="flex items-center gap-2">
               <span>Follow us on</span>
               <i className="fab fa-facebook" />
@@ -44,56 +44,44 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="flex gap-4 items-center">
-            <NavLink
-              to="#"
-              className="flex items-center gap-1 hover:opacity-80"
-            >
-              <i className="far fa-bell text-sm" />
+          <div className="flex items-center gap-4">
+            <NavLink to="#">
+              <i className="far fa-bell mr-1" />
               Notifications
             </NavLink>
 
-            <NavLink
-              to="#"
-              className="flex items-center gap-1 hover:opacity-80"
-            >
-              <i className="far fa-question-circle text-sm" />
+            <NavLink to="#">
+              <i className="far fa-question-circle mr-1" />
               Help
             </NavLink>
 
-            <div className="flex items-center gap-1 cursor-pointer hover:opacity-80">
-              <i className="fas fa-globe text-sm" />
+            <span>
+              <i className="fas fa-globe mr-1" />
               English
-              <i className="fas fa-chevron-down text-[10px]" />
-            </div>
+            </span>
 
             {isLoggedIn ? (
               <>
-                <span className="flex items-center gap-1 font-bold">
-                  <i className="far fa-user text-sm" />
+                <span className="font-bold truncate max-w-36">
+                  <i className="far fa-user mr-1" />
                   {user?.fullName}
                 </span>
-
-                <div className="border-l border-white opacity-30 h-3" />
 
                 <button
                   type="button"
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="font-bold hover:opacity-80 disabled:opacity-60"
+                  className="font-bold hover:opacity-80"
                 >
                   {isLoggingOut ? "Logging out..." : "Logout"}
                 </button>
               </>
             ) : (
               <>
-                <NavLink to="/register" className="font-bold hover:opacity-80">
+                <NavLink to="/register" className="font-bold">
                   Sign Up
                 </NavLink>
-
-                <div className="border-l border-white opacity-30 h-3" />
-
-                <NavLink to="/login" className="font-bold hover:opacity-80">
+                <NavLink to="/login" className="font-bold">
                   Login
                 </NavLink>
               </>
@@ -101,36 +89,84 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between py-4 pb-6">
-          <div className="flex items-center gap-2 flex-shrink-0 mr-8 cursor-pointer">
-            <i className="fas fa-shopping-bag text-4xl" />
-            <span className="text-3xl font-bold tracking-tighter">
+        {/* Main navigation */}
+        <div className="flex flex-wrap items-center gap-3 py-3 sm:py-4">
+
+          {/* Logo */}
+          <Link
+            to="/"
+            className="flex items-center gap-2 shrink-0"
+          >
+            <i className="fas fa-shopping-bag text-2xl sm:text-3xl lg:text-4xl" />
+            <span className="text-2xl sm:text-3xl font-bold tracking-tight">
               Shop
             </span>
-          </div>
+          </Link>
 
-          <div className="flex-grow max-w-4xl">
-            <div className="bg-white p-1 rounded-sm flex items-center shadow-sm">
+          {/* Search */}
+          <div className="order-3 sm:order-none w-full sm:flex-1 min-w-0">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const input = e.currentTarget.elements.namedItem(
+                  "keyword"
+                ) as HTMLInputElement;
+                navigate(`/products?keyword=${encodeURIComponent(input.value)}`);
+              }}
+              className="bg-white p-1 rounded-md flex items-center shadow-sm"
+            >
               <input
-                type="text"
-                placeholder="Shopee bao ship 0Đ - Đăng ký ngay!"
-                className="flex-grow px-4 py-2 text-black outline-none text-sm"
+                name="keyword"
+                type="search"
+                placeholder="Tìm kiếm sản phẩm..."
+                className="flex-1 min-w-0 px-3 py-2 text-black outline-none text-xs sm:text-sm"
               />
 
               <button
-                type="button"
+                type="submit"
                 aria-label="Search"
-                className="shopee-orange px-6 py-2 rounded-sm"
+                className="shop-orange px-4 sm:px-6 py-2 rounded-sm"
               >
                 <i className="fas fa-search" />
               </button>
-            </div>
+            </form>
           </div>
 
-          <div className="px-10 relative cursor-pointer">
-            <i className="fas fa-shopping-cart text-2xl" />
-          </div>
+          {/* Cart */}
+          <Link
+            to="/cart"
+            aria-label="Giỏ hàng"
+            className="ml-auto sm:ml-0 px-2 sm:px-4"
+          >
+            <i className="fas fa-shopping-cart text-xl sm:text-2xl" />
+          </Link>
         </div>
+
+        {/* Mobile account navigation */}
+        <div className="md:hidden flex items-center justify-between pb-3 text-xs">
+          {isLoggedIn ? (
+            <>
+              <span className="truncate max-w-[60%]">
+                <i className="far fa-user mr-1" />
+                {user?.fullName}
+              </span>
+
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="font-bold"
+              >
+                {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+              </button>
+            </>
+          ) : (
+            <div className="flex gap-4">
+              <NavLink to="/register">Đăng ký</NavLink>
+              <NavLink to="/login">Đăng nhập</NavLink>
+            </div>
+          )}
+        </div>
+
       </div>
     </header>
   );

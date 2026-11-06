@@ -10,6 +10,7 @@ import HomePage from "../pages/home/index";
 import RegisterPage from "../pages/auth/register";
 import ForgotPassword from "../pages/auth/forgotPassword/index";
 import ProductsPage from "../pages/products/ProductsPage";
+import ProductDetail from "../pages/products/item";
 // import ProfilePage from "../pages/user/profile";
 
 export const router = createBrowserRouter([
@@ -28,6 +29,10 @@ export const router = createBrowserRouter([
         path: "products",
         element: <ProductsPage />,
       },
+      {
+        path:"/product-detail/:id",
+        element:<ProductDetail/>
+      }
     ],
   },
 
