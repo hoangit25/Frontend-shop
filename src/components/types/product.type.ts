@@ -1,35 +1,74 @@
 export interface Product {
   _id: string;
   name: string;
+  slug: string;
+  description?: string;
+  brand?: string;
   image: string;
+  images?: string[];
+  categoryId: string;
   price: number;
+  originalPrice?: number;
   discount?: number;
-  sold: number;
-  location?: string;
+  stock: number;
+  sold?: number;
+  rating?: number;
+  ratingCount?: number;
+  isFeatured?: boolean;
+  status?: 'DRAFT' | 'ACTIVE' | 'OUT_OF_STOCK' | 'ARCHIVED';
+  createdAt?: string;
+  updatedAt?: string;
+
+  // Compatibility fields for legacy components if needed
+  id?: string;
+  title?: string;
+  thumbnail?: string;
+  discountPercentage?: number;
+}
+
+export interface PaginationMeta {
+  totalItems: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface BackendResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  meta?: PaginationMeta;
+}
+
+export interface ProductListParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  keyword?: string;
+  categoryId?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  rating?: number;
+  inStock?: boolean;
+  isFeatured?: boolean;
 }
 
 export interface CreateProduct {
   name: string;
+  description?: string;
   image: string;
-  price: number;
-  discount?: number;
-  description: string;
+  images?: string[];
   categoryId: string;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
   stock: number;
 }
 
-// Interface cập nhật sản phẩm
-export interface UpdateProduct {
-  name?: string;
-  image?: string;
-  price?: number;
-  discount?: number;
-  description?: string;
-  categoryId?: string;
-  stock?: number;
-}
-
-// Interface xóa sản phẩm
-export interface DeleteProduct {
-  id: string;
+export interface UpdateProduct extends Partial<CreateProduct> {
+  isActive?: boolean;
 }

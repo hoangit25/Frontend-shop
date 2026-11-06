@@ -9,7 +9,7 @@ import LoginPage from "../pages/auth/login";
 import HomePage from "../pages/home/index";
 import RegisterPage from "../pages/auth/register";
 import ForgotPassword from "../pages/auth/forgotPassword/index";
-// import ProductsPage from "../pages/home/products";
+import ProductsPage from "../pages/products/ProductsPage";
 // import ProfilePage from "../pages/user/profile";
 
 export const router = createBrowserRouter([
@@ -23,6 +23,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "products",
+        element: <ProductsPage />,
       },
     ],
   },
