@@ -1,5 +1,5 @@
-interface Session{
-    userId: string;
+export interface Session {
+  userId: string;
   refreshToken: string;
   ipAddress: string;
   userAgent: string;
@@ -10,8 +10,8 @@ interface Session{
   updatedAt: Date;
 }
 
-interface BlackListToken{
-jti: string;
+export interface BlackListToken {
+  jti: string;
   userId?: string;
   sessionId?: string;
   reason?: string;
@@ -19,28 +19,26 @@ jti: string;
   createdAt: Date;
 }
 
-interface UserPayLoad{
-    id: string;
+export interface UserPayLoad {
+  id: string;
   email: string;
 }
 
-
-interface AccessTokenPayLoad{
+export interface AccessTokenPayLoad {
   id: string;
   email: string;
   jti: string;
   sessionId?: string;
-  type:"access"
+  type: "access";
 }
 
-interface RefreshTokenPayLoad{
-  id:string;
-  email:string;
-  sessionId?: string
+export interface RefreshTokenPayLoad {
+  id: string;
+  email: string;
+  sessionId?: string;
 }
 
-interface LoginPayLoad{
-  email: string,
-  password:string
+export interface LoginPayLoad {
+  email: string;
+  password: string;
 }
-

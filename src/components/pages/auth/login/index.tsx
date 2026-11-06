@@ -1,18 +1,19 @@
 
 import axios from "axios";
 import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../store/auth-store";
 import { http } from "../../../utils/axios-config";
-import { Link } from "react-router-dom";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  const setAccessToken = useAuthStore(
-    (state) => state.setAccessToken
-  );
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setUser = useAuthStore((state) => state.setUser);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,19 +24,30 @@ export default function LoginPage() {
     }
 
     setMessage("");
+    setIsSubmitting(true);
 
     try {
       const response = await http.post<{
-        data: { accessToken: string };
+        data: {
+          accessToken: string;
+          user: { fullName?: string; email?: string };
+        };
       }>("/auth/login", {
         email: email.trim(),
         password,
       });
 
-      setAccessToken(response.data.data.accessToken);
-      localStorage.setItem("is_login", "true");
+      const loggedInUser = response.data.data.user;
+      const userEmail = loggedInUser.email?.trim() || email.trim();
+      const user = {
+        fullName: loggedInUser.fullName?.trim() || userEmail,
+        email: userEmail,
+      };
 
-      setMessage("Đăng nhập thành công.");
+      setAccessToken(response.data.data.accessToken);
+      setUser(user);
+      localStorage.setItem("is_login", "true");
+      navigate("/", { replace: true });
     } catch (error) {
       const errorMessage = axios.isAxiosError<{ message?: string }>(
         error
@@ -46,6 +58,7 @@ export default function LoginPage() {
       setMessage(
         errorMessage || "Đăng nhập thất bại. Vui lòng thử lại."
       );
+      setIsSubmitting(false);
     }
   };
 
@@ -144,9 +157,10 @@ export default function LoginPage() {
               {/* Login Button */}
               <button
                 type="submit"
-                className="w-full bg-[#F15A24] text-white font-semibold py-4 rounded-lg shadow-lg hover:bg-[#D94A1B] transition-all text-base sm:text-lg mt-4"
+                disabled={isSubmitting}
+                className="w-full bg-[#F15A24] text-white font-semibold py-4 rounded-lg shadow-lg hover:bg-[#D94A1B] transition-all text-base sm:text-lg mt-4 disabled:opacity-70"
               >
-                Login
+                {isSubmitting ? "Logging in..." : "Login"}
               </button>
 
             </form>

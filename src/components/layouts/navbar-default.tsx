@@ -1,6 +1,31 @@
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/auth-store";
+import { http } from "../utils/axios-config";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const isLoggedIn = Boolean(accessToken && user);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+
+    try {
+      await http.post("/auth/logout");
+    } catch {
+      // Cookie or token may already be invalid; still end the local session.
+    } finally {
+      clearAuth();
+      setIsLoggingOut(false);
+      navigate("/login", { replace: true });
+    }
+  };
+
   return (
     <header className="shop-orange text-white text-xs">
       <div className="container mx-auto px-4">
@@ -42,15 +67,37 @@ export default function Navbar() {
               <i className="fas fa-chevron-down text-[10px]" />
             </div>
 
-            <NavLink to="/register" className="font-bold hover:opacity-80">
-              Sign Up
-            </NavLink>
+            {isLoggedIn ? (
+              <>
+                <span className="flex items-center gap-1 font-bold">
+                  <i className="far fa-user text-sm" />
+                  {user?.fullName}
+                </span>
 
-            <div className="border-l border-white opacity-30 h-3" />
+                <div className="border-l border-white opacity-30 h-3" />
 
-            <NavLink to="/login" className="font-bold hover:opacity-80">
-              Login
-            </NavLink>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="font-bold hover:opacity-80 disabled:opacity-60"
+                >
+                  {isLoggingOut ? "Logging out..." : "Logout"}
+                </button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/register" className="font-bold hover:opacity-80">
+                  Sign Up
+                </NavLink>
+
+                <div className="border-l border-white opacity-30 h-3" />
+
+                <NavLink to="/login" className="font-bold hover:opacity-80">
+                  Login
+                </NavLink>
+              </>
+            )}
           </div>
         </div>
 

@@ -126,7 +126,7 @@ export default function ForgotPassword() {
       const msg = axios.isAxiosError<{ message?: string }>(err)
         ? err.response?.data?.message
         : undefined;
-      throw new Error(msg || "Mã xác thực không hợp lệ hoặc đã hết hạn.");
+      throw new Error(msg || "Mã xác thực không hợp lệ hoặc đã hết hạn.", { cause: err });
     }
   };
 
