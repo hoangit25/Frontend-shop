@@ -3,12 +3,14 @@ import { useState } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth-store";
 import { http } from "../utils/axios-config";
+import { useCart } from "../hooks/cart";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const { totalQuantity } = useCart();
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isLoggedIn = Boolean(accessToken && user);
@@ -132,13 +134,18 @@ export default function Navbar() {
             </form>
           </div>
 
-          {/* Cart */}
+          {/* Cart with live Badge */}
           <Link
             to="/cart"
             aria-label="Giỏ hàng"
-            className="ml-auto sm:ml-0 px-2 sm:px-4"
+            className="relative ml-auto sm:ml-0 px-2 sm:px-4 flex items-center hover:opacity-90 transition-opacity"
           >
             <i className="fas fa-shopping-cart text-xl sm:text-2xl" />
+            {totalQuantity > 0 && (
+              <span className="absolute -top-1.5 right-0 sm:right-1 bg-white text-orange-600 font-bold text-[10px] sm:text-xs rounded-full h-4 sm:h-5 min-w-[16px] sm:min-w-[20px] px-1 flex items-center justify-center shadow-md border border-orange-200">
+                {totalQuantity > 99 ? "99+" : totalQuantity}
+              </span>
+            )}
           </Link>
         </div>
 
