@@ -1,6 +1,7 @@
 // src/components/routes/index.tsx
 import { createBrowserRouter } from "react-router-dom";
 import GuestRoute from "./guestRoute";
+import ProtectedRoute from "./protectedRoute"
 import LayoutDefault from "../layouts/layout-default";
 // import ProtectedRoute from "./protectedRoute";
 
@@ -11,6 +12,7 @@ import RegisterPage from "../pages/auth/register";
 import ForgotPassword from "../pages/auth/forgotPassword/index";
 import ProductsPage from "../pages/products/ProductsPage";
 import ProductDetail from "../pages/products/item";
+import CartPage from "../pages/cart/index"
 // import ProfilePage from "../pages/user/profile";
 
 export const router = createBrowserRouter([
@@ -64,4 +66,14 @@ export const router = createBrowserRouter([
     path: "*",
     element: <div>404 - Trang không tồn tại</div>,
   },
+
+    {
+    element: <ProtectedRoute />, 
+    children:[
+      {
+        path:"/cart",
+        element:<CartPage/>
+      }
+    ]
+  }
 ]);
