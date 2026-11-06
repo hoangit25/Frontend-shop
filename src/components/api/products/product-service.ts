@@ -35,6 +35,7 @@ export interface ProductVariant {
   size?: string;
   color?: string;
   colorCode?: string;
+  optionValues?: Record<string, string>;
   price: number;
   originalPrice?: number;
   stock: number;

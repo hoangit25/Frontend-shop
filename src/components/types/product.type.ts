@@ -14,6 +14,8 @@ export interface Product {
   sold?: number;
   rating?: number;
   ratingCount?: number;
+  tags?: string[];
+  attributes?: Record<string, string>;
   isFeatured?: boolean;
   status?: 'DRAFT' | 'ACTIVE' | 'OUT_OF_STOCK' | 'ARCHIVED';
   createdAt?: string;

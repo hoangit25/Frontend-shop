@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import ProductItem from "./item";
+import ProductItem from "./product-list";
 import Pagination from "./pagination";
 import { useProducts, useCategories } from "../../hooks/products";
 import type { Product } from "../../types/product.type";
@@ -13,7 +13,6 @@ export default function ProductsPage() {
   const orderParam = (searchParams.get("sortOrder") as "asc" | "desc") || "desc";
   const searchKeyword = searchParams.get("keyword") || "";
 
-  const [searchInput, setSearchInput] = useState(searchKeyword);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const limit = 18;
@@ -66,11 +65,6 @@ export default function ProductsPage() {
     }
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateParam("keyword", searchInput.trim());
-  };
-
   const handleAddToCart = (product: Product) => {
     console.log("Add to cart:", product);
   };
@@ -88,32 +82,7 @@ export default function ProductsPage() {
 
       {/* Filter & Search Bar */}
       <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-4 mb-6">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-          {/* Search Form */}
-          <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm theo tên..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="
-                w-full pl-10 pr-24 py-2.5 rounded-lg border border-gray-200
-                text-xs sm:text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500
-              "
-            />
-            <i className="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
-            <button
-              type="submit"
-              className="
-                absolute right-1.5 top-1/2 -translate-y-1/2
-                px-3 py-1.5 rounded-md bg-orange-500 text-white text-xs font-medium
-                hover:bg-orange-600 transition-colors
-              "
-            >
-              Tìm
-            </button>
-          </form>
-
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">   
           {/* Filter options */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Category Select */}

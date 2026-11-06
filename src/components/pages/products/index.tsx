@@ -1,13 +1,13 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import ProductItem from "./item";
+import ProductItem from "./product-list";
 import Pagination from "./pagination";
 import { useProducts } from "../../hooks/products";
 import type { Product } from "../../types/product.type";
 
 export default function ProductList() {
   const [page, setPage] = useState<number>(1);
-  const limit = 12;
+  const limit = 15;
   const sectionRef = useRef<HTMLElement>(null);
 
   // Quản lý state query qua TanStack Query với pagination

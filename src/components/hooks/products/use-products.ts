@@ -22,8 +22,13 @@ export function useProducts(params?: ProductListParams) {
 }
 
 // ── 2. QUERY: Lấy Product Detail ──
+export type ProductDetailData = Product & {
+  options: ProductOption[];
+  variants: ProductVariant[];
+};
+
 export function useProductDetail(idOrSlug: string) {
-  return useQuery({
+  return useQuery<BackendResponse<ProductDetailData>>({
     queryKey: productKeys.detail(idOrSlug),
     queryFn: () => productService.getProductDetail(idOrSlug),
     enabled: Boolean(idOrSlug),
