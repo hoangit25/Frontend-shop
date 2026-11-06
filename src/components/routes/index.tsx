@@ -12,7 +12,8 @@ import RegisterPage from "../pages/auth/register";
 import ForgotPassword from "../pages/auth/forgotPassword/index";
 import ProductsPage from "../pages/products/ProductsPage";
 import ProductDetail from "../pages/products/item";
-import CartPage from "../pages/cart/index"
+import CartPage from "../pages/cart/index";
+import CheckoutPage from "../pages/cart/checkout"
 // import ProfilePage from "../pages/user/profile";
 
 export const router = createBrowserRouter([
@@ -73,6 +74,10 @@ export const router = createBrowserRouter([
       {
         path:"/cart",
         element:<CartPage/>
+      },
+      {
+        path:"checkout",
+        element:<CheckoutPage/>
       }
     ]
   }
