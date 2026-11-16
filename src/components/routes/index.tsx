@@ -57,6 +57,10 @@ export const router = createBrowserRouter([
         path: "/forgot-password",
         element: <ForgotPassword />,
       },
+      {
+        path:"/cart",
+        element:<CartPage/>
+      }
     ],
   },
 
@@ -71,10 +75,6 @@ export const router = createBrowserRouter([
     {
     element: <ProtectedRoute />, 
     children:[
-      {
-        path:"/cart",
-        element:<CartPage/>
-      },
       {
         path:"checkout",
         element:<CheckoutPage/>
