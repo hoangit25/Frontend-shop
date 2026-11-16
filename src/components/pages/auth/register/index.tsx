@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { http } from "../../../utils/axios-config";
 
 const RegisterPage = () => {
@@ -14,6 +14,7 @@ const RegisterPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -65,9 +66,9 @@ const RegisterPage = () => {
 
       setSuccessMessage("Đăng ký tài khoản thành công! Đang chuyển sang trang đăng nhập...");
 
-      // 3. Chuyển hướng sang trang Login sau 1.5 giây
+      // 3. Chuyển hướng sang trang Login sau 1.5 giây (giữ lại location.state nếu có)
       setTimeout(() => {
-        navigate("/login", { replace: true });
+        navigate("/login", { state: location.state, replace: true });
       }, 1500);
     } catch (error) {
       const apiMessage = axios.isAxiosError<{ message?: string }>(error)
@@ -231,6 +232,7 @@ const RegisterPage = () => {
 
           <Link
             to="/login"
+            state={location.state}
             className="border-2 border-white text-white font-medium py-3 px-16 rounded-full hover:bg-white hover:text-[#F15A24] transition-all inline-block"
           >
             Login

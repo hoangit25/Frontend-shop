@@ -73,12 +73,12 @@ export const router = createBrowserRouter([
     element: <div>404 - Trang không tồn tại</div>,
   },
 
-    {
+  {
     element: <ProtectedRoute />, 
     children:[
       {
-        path:"checkout",
-        element:<CheckoutPage/>
+        path: "/checkout",
+        element: <CheckoutPage />
       }
     ]
   }

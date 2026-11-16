@@ -10,6 +10,7 @@ import {
   useValidateCart,
   cartKeys,
 } from "../../hooks/cart";
+import { useAuthStore } from "../../store/auth-store";
 import type { Cart, CartItem, BackendResponse } from "../../types/cart.type";
 
 const formatPrice = (price: number = 0) =>
@@ -138,6 +139,7 @@ function QuantityControl({
 export default function CartPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   // 1. TanStack Query: Lấy toàn bộ trạng thái giỏ hàng từ server
   const {
@@ -297,30 +299,36 @@ export default function CartPage() {
     debounceTimersRef.current = {};
     pendingQtyRef.current = {};
 
+    // Nếu chưa đăng nhập => Chuyển đến trang login và lưu target là /checkout
+    if (!accessToken) {
+      navigate("/login", { state: { from: "/checkout" } });
+      return;
+    }
+
     // Validate giỏ hàng trước khi chuyển sang bước thanh toán
-  validateCartMutation.mutate(true, {
-    onSuccess: (res) => {
-      const issues = res.data?.issues ?? [];
+    validateCartMutation.mutate(true, {
+      onSuccess: (res) => {
+        const issues = res.data?.issues ?? [];
 
-      if (issues.length > 0) {
-        setValidationModal({
-          show: true,
-          issues,
-        });
-        return;
-      }
+        if (issues.length > 0) {
+          setValidationModal({
+            show: true,
+            issues,
+          });
+          return;
+        }
 
-      navigate("/checkout");
-    },
+        navigate("/checkout");
+      },
 
-    onError: (error) => {
-      console.error("Validate cart failed:", error);
+      onError: (error) => {
+        console.error("Validate cart failed:", error);
 
-      // Không chuyển trang khi API validate thất bại
-      // Có thể hiển thị toast thông báo lỗi
-    },
-  });
-};
+        // Không chuyển trang khi API validate thất bại
+        // Có thể hiển thị toast thông báo lỗi
+      },
+    });
+  };
 
   // ── Render Helpers ──
   const getVariationText = (item: CartItem) => {
@@ -721,7 +729,11 @@ export default function CartPage() {
                 type="button"
                 onClick={() => {
                   setValidationModal({ show: false, issues: [] });
-                  navigate("/checkout");
+                  if (!accessToken) {
+                    navigate("/login", { state: { from: "/checkout" } });
+                  } else {
+                    navigate("/checkout");
+                  }
                 }}
                 className="px-5 py-2 rounded-sm bg-[#ee4d2d] text-xs font-semibold text-white hover:bg-[#d73211]"
               >
