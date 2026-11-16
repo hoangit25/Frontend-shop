@@ -30,7 +30,7 @@ export default function ProductsPage() {
   const [recentAddedId, setRecentAddedId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const limit = 18;
+  const limit = 20;
 
   // Products query
   const {

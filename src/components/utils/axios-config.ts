@@ -9,13 +9,25 @@ export const http = axios.create({
   withCredentials: true,
 });
 
+// Hàm hỗ trợ lấy hoặc tạo mới guest_id lưu trong localStorage
+const getOrCreateGuestId = (): string => {
+  let guestId = localStorage.getItem("guest_id");
+  if (!guestId) {
+    guestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    localStorage.setItem("guest_id", guestId);
+  }
+  return guestId;
+};
+
 http.interceptors.request.use((config) => {
   const accessToken = useAuthStore.getState().accessToken;
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
+  } else {
+    config.headers["x-guest-id"] = getOrCreateGuestId();
   }
 
-  return config; 
+  return config;
 });
 
 let refreshPromise: Promise<string> | null = null;
