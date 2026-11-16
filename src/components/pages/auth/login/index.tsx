@@ -1,9 +1,12 @@
 
 import axios from "axios";
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../../store/auth-store";
 import { http } from "../../../utils/axios-config";
+import { cartService } from "../../../api/cart/cart-service";
+import { cartKeys } from "../../../hooks/cart";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,6 +14,8 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
 
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const setUser = useAuthStore((state) => state.setUser);
@@ -47,7 +52,28 @@ export default function LoginPage() {
       setAccessToken(response.data.data.accessToken);
       setUser(user);
       localStorage.setItem("is_login", "true");
-      navigate("/", { replace: true });
+
+      // Gộp giỏ hàng khách vào tài khoản nếu có
+      const guestId = localStorage.getItem("guest_id");
+      if (guestId) {
+        try {
+          await cartService.mergeCart({ guestId });
+          localStorage.removeItem("guest_id");
+          await queryClient.invalidateQueries({ queryKey: cartKeys.detail() });
+        } catch (mergeError) {
+          console.error("Gộp giỏ hàng khách thất bại:", mergeError);
+        }
+      }
+
+      // Điều hướng về trang đích trước đó (ví dụ: /checkout) hoặc mặc định về "/"
+      const from =
+        location.state?.from?.pathname
+          ? `${location.state.from.pathname}${location.state.from.search || ""}`
+          : typeof location.state?.from === "string"
+          ? location.state.from
+          : "/";
+
+      navigate(from, { replace: true });
     } catch (error) {
       const errorMessage = axios.isAxiosError<{ message?: string }>(
         error
@@ -81,6 +107,7 @@ export default function LoginPage() {
 
             <Link
               to="/register"
+              state={location.state}
               className="inline-flex items-center justify-center border-2 border-white text-white px-10 lg:px-12 py-3 rounded-xl text-base lg:text-lg font-medium hover:bg-white hover:text-[#F15A24] transition-colors"
             >
               Registration
