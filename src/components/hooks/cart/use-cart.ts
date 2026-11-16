@@ -120,7 +120,7 @@ export function useRemoveCartItem() {
 
   return useMutation<
     BackendResponse<Cart>,
-    Error,
+    any,
     string,
     { previousCart?: BackendResponse<Cart> }
   >({
@@ -130,18 +130,35 @@ export function useRemoveCartItem() {
       const previousCart = queryClient.getQueryData<BackendResponse<Cart>>(cartKeys.detail());
 
       if (previousCart?.data) {
+        const itemToRemove = previousCart.data.items.find(
+          (item) => item._id === itemId || (item as any).id === itemId
+        );
+        const updatedItems = previousCart.data.items.filter(
+          (item) => item._id !== itemId && (item as any).id !== itemId
+        );
+
+        const removedQty = itemToRemove?.quantity || 0;
+        const removedPrice = (itemToRemove?.price || 0) * removedQty;
+
         queryClient.setQueryData<BackendResponse<Cart>>(cartKeys.detail(), {
           ...previousCart,
           data: {
             ...previousCart.data,
-            items: previousCart.data.items.filter((item) => item._id !== itemId),
+            items: updatedItems,
+            totalQuantity: Math.max(0, (previousCart.data.totalQuantity || 0) - removedQty),
+            totalPrice: Math.max(0, (previousCart.data.totalPrice || 0) - removedPrice),
+            subtotal: Math.max(0, (previousCart.data.subtotal || 0) - removedPrice),
           },
         });
       }
 
       return { previousCart };
     },
-    onError: (_err, _variables, context) => {
+    onError: (err, _variables, context) => {
+      // Nếu lỗi là 404 (sản phẩm đã không còn tồn tại trên server), không rollback
+      if (err?.response?.status === 404) {
+        return;
+      }
       if (context?.previousCart) {
         queryClient.setQueryData(cartKeys.detail(), context.previousCart);
       }
@@ -149,9 +166,7 @@ export function useRemoveCartItem() {
     onSuccess: (response) => {
       queryClient.setQueryData(cartKeys.detail(), response);
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: cartKeys.all });
-    },
+    // Không invalidateQueries ở onSettled để tránh spam gọi lại GET /cart liên tục
   });
 }
 

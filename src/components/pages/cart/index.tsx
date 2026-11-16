@@ -173,6 +173,7 @@ export default function CartPage() {
   }, []);
 
   // 4. Local UI States
+  const [deletingIds, setDeletingIds] = useState<string[]>([]);
   const [validationModal, setValidationModal] = useState<{
     show: boolean;
     issues: any[];
@@ -264,13 +265,22 @@ export default function CartPage() {
   };
 
   const handleDeleteItem = (itemId: string) => {
+    // Ngăn chặn spam click hoặc gọi nhiều lần trên cùng 1 item
+    if (deletingIds.includes(itemId)) return;
+
     // Nếu item đang có timer debounce tăng giảm số lượng, huỷ ngay để không gọi đè
     if (debounceTimersRef.current[itemId]) {
       clearTimeout(debounceTimersRef.current[itemId]);
       delete debounceTimersRef.current[itemId];
       delete pendingQtyRef.current[itemId];
     }
-    removeItemMutation.mutate(itemId);
+
+    setDeletingIds((prev) => [...prev, itemId]);
+    removeItemMutation.mutate(itemId, {
+      onSettled: () => {
+        setDeletingIds((prev) => prev.filter((id) => id !== itemId));
+      },
+    });
   };
 
   const handleCheckout = () => {
@@ -510,12 +520,27 @@ export default function CartPage() {
                             )}
                           </div>
 
-                          <QuantityControl
-                            quantity={item.quantity}
-                            maxStock={availableStock}
-                            disabled={isSoldOut}
-                            onChange={(q) => handleQuantityChange(item._id, q)}
-                          />
+                          <div className="flex items-center gap-2">
+                            <QuantityControl
+                              quantity={item.quantity}
+                              maxStock={availableStock}
+                              disabled={isSoldOut}
+                              onChange={(q) => handleQuantityChange(item._id, q)}
+                            />
+                            <button
+                              type="button"
+                              disabled={deletingIds.includes(item._id)}
+                              onClick={() => handleDeleteItem(item._id)}
+                              className="text-xs text-gray-400 hover:text-[#ee4d2d] p-1 disabled:opacity-50"
+                              title="Xóa sản phẩm"
+                            >
+                              {deletingIds.includes(item._id) ? (
+                                <i className="fas fa-spinner fa-spin text-xs" />
+                              ) : (
+                                <i className="fas fa-trash-alt text-xs" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -551,10 +576,18 @@ export default function CartPage() {
                     <div className="hidden lg:flex justify-center">
                       <button
                         type="button"
+                        disabled={deletingIds.includes(item._id)}
                         onClick={() => handleDeleteItem(item._id)}
-                        className="text-xs sm:text-sm text-gray-500 hover:text-[#ee4d2d] transition-colors"
+                        className="text-xs sm:text-sm text-gray-500 hover:text-[#ee4d2d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                       >
-                        Xóa
+                        {deletingIds.includes(item._id) ? (
+                          <>
+                            <i className="fas fa-spinner fa-spin text-xs" />
+                            <span>Đang xóa...</span>
+                          </>
+                        ) : (
+                          <span>Xóa</span>
+                        )}
                       </button>
                     </div>
                   </div>
