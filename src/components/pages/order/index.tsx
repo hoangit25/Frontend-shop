@@ -52,8 +52,12 @@ export default function OrdersPage() {
       setIsLoading(true);
       setError(null);
       const res = await orderService.getOrders();
-      if (res?.data?.orders) {
-        setOrders(res.data.orders);
+      // Backend ApiResponse.paginated trả về { success, message, data: Order[], meta: pagination }
+      // request.ts unwrap response.data → res = { success, message, data: Order[], meta: ... }
+      if (res?.data) {
+        // data là mảng Order[] trực tiếp (không phải { orders: [...] })
+        const ordersData = Array.isArray(res.data) ? res.data : (res.data as any).orders || [];
+        setOrders(ordersData);
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || "Không thể tải danh sách đơn hàng.");
