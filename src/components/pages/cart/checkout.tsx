@@ -241,7 +241,11 @@ export default function CheckoutPage() {
         note: form.note,
       });
 
+      // request.ts unwrap response.data → orderRes = { success, message, data: Order }
       const createdOrder = orderRes.data;
+      if (!createdOrder || !createdOrder._id) {
+        throw new Error("Không nhận được thông tin đơn hàng từ hệ thống.");
+      }
 
       // Xoá cache giỏ hàng TanStack Query vì các item đã được mua
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
@@ -255,7 +259,9 @@ export default function CheckoutPage() {
           returnUrl: `${window.location.origin}/checkout/payment-return`,
         });
 
-        const paymentUrl = paymentRes?.data?.paymentUrl;
+        // paymentRes = { success, message, data: CreatePaymentResponse }
+        const paymentData = paymentRes?.data;
+        const paymentUrl = paymentData?.paymentUrl;
         if (paymentUrl) {
           // Chuyển hướng người dùng sang cổng thanh toán VNPay Sandbox
           window.location.href = paymentUrl;
@@ -269,11 +275,15 @@ export default function CheckoutPage() {
       }
     } catch (error: any) {
       console.error("Lỗi đặt hàng:", error);
-      setErrorMessage(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Đã xảy ra lỗi khi tạo đơn hàng. Vui lòng thử lại."
-      );
+      const serverMsg = error?.response?.data?.message;
+      const statusCode = error?.response?.status;
+      let userMsg = serverMsg || error?.message || "Đã xảy ra lỗi khi tạo đơn hàng. Vui lòng thử lại.";
+      if (statusCode === 404) {
+        userMsg = "API đặt hàng chưa được kích hoạt. Vui lòng kiểm tra Backend đã deploy phiên bản mới nhất.";
+      } else if (!error?.response && error?.message?.includes("Network")) {
+        userMsg = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng hoặc Backend URL.";
+      }
+      setErrorMessage(userMsg);
     } finally {
       setIsSubmitting(false);
     }
