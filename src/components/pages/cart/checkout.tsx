@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Truck,
@@ -13,9 +14,14 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  Copy,
+  Check,
+  Info,
 } from "lucide-react";
-import { useCart, useUpdateCartItem } from "../../hooks/cart";
+import { useCart, useUpdateCartItem, cartKeys } from "../../hooks/cart";
 import { useAuthStore } from "../../store/auth-store";
+import { orderService } from "../../api/order/order-service";
+import { paymentService } from "../../api/payment/payment-service";
 import type { CartItem } from "../../types/cart.type";
 
 interface ShippingForm {
@@ -28,7 +34,7 @@ interface ShippingForm {
   note?: string;
 }
 
-type PaymentMethod = "COD" | "CARD";
+type PaymentMethod = "COD" | "VNPAY";
 
 const formatPrice = (price: number = 0) =>
   `₫${Math.round(price).toLocaleString("vi-VN")}`;
@@ -63,13 +69,14 @@ const getItemImage = (item: CartItem) => {
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
 
   // 1. TanStack Query: Lấy toàn bộ giỏ hàng
   const { items, selectedItems, isLoading, cart } = useCart();
   const updateCartItemMutation = useUpdateCartItem();
 
-  // 2. Danh sách sản phẩm được chọn để thanh toán (nếu không chọn riêng thì mặc định toàn bộ giỏ hàng)
+  // 2. Danh sách sản phẩm được chọn để thanh toán (mặc định toàn bộ giỏ nếu không chọn lẻ)
   const checkoutItems = useMemo(() => {
     if (selectedItems && selectedItems.length > 0) {
       return selectedItems;
@@ -77,7 +84,7 @@ export default function CheckoutPage() {
     return items || [];
   }, [selectedItems, items]);
 
-  // 3. Khởi tạo form thông tin giao hàng
+  // 3. Khởi tạo form thông tin nhận hàng
   const [form, setForm] = useState<ShippingForm>(() => {
     const saved = localStorage.getItem("checkout_shipping_address");
     if (saved) {
@@ -98,7 +105,7 @@ export default function CheckoutPage() {
     };
   });
 
-  // Tự động điền fullName/email nếu user thay đổi
+  // Tự động điền fullName/email nếu user đăng nhập
   useEffect(() => {
     if (user) {
       setForm((prev) => ({
@@ -110,8 +117,17 @@ export default function CheckoutPage() {
   }, [user]);
 
   const [saveAddress, setSaveAddress] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("COD");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("VNPAY");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showSandboxCard, setShowSandboxCard] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   // 4. Tính toán số tiền cần thanh toán
   const subtotal = useMemo(() => {
@@ -182,17 +198,26 @@ export default function CheckoutPage() {
       ...prev,
       [name]: value,
     }));
+    if (errorMessage) setErrorMessage(null);
   };
 
-  // Submit thanh toán
+  // 5. Submit thanh toán: Kết nối trực tiếp Backend Order & VNPay Gateway
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (checkoutItems.length === 0 || isSubmitting) return;
 
+    // Validation cơ bản phía client
+    if (!form.fullName.trim() || !form.phone.trim() || !form.address.trim() || !form.city.trim()) {
+      setErrorMessage("Vui lòng điền đầy đủ các thông tin giao hàng bắt buộc.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
+      setErrorMessage(null);
 
+      // Lưu địa chỉ vào localStorage nếu người dùng chọn
       if (saveAddress) {
         localStorage.setItem(
           "checkout_shipping_address",
@@ -200,42 +225,55 @@ export default function CheckoutPage() {
         );
       }
 
-      const orderPayload = {
-        shippingInfo: form,
-        items: checkoutItems.map((item) => ({
-          itemId: item._id,
-          productId:
-            typeof item.productId === "object"
-              ? item.productId._id
-              : item.productId,
-          variantId:
-            typeof item.variantId === "object"
-              ? item.variantId?._id
-              : item.variantId,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-        })),
+      // BƯỚC 1: Gọi Backend API để tạo đơn hàng chính thức
+      const orderRes = await orderService.createOrder({
+        fromCart: true,
+        shippingAddress: {
+          fullName: form.fullName.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+          address: form.address.trim(),
+          city: form.city.trim(),
+          postalCode: form.postalCode?.trim(),
+          note: form.note?.trim(),
+        },
         paymentMethod,
-        saveAddress,
-        subtotal,
-        discount,
-        shippingFee,
-        totalAmount,
-      };
+        note: form.note,
+      });
 
-      console.log("Order payload:", orderPayload);
+      const createdOrder = orderRes.data;
 
-      // ID đơn hàng demo - sẵn sàng gắn API backend khi order routes hoạt động
-      const orderId = `DH_${Date.now()}`;
+      // Xoá cache giỏ hàng TanStack Query vì các item đã được mua
+      queryClient.invalidateQueries({ queryKey: cartKeys.all });
 
-      if (paymentMethod === "CARD") {
-        navigate(`/payment/${orderId}`);
+      // BƯỚC 2: Xử lý theo phương thức thanh toán
+      if (paymentMethod === "VNPAY") {
+        // Khởi tạo thanh toán VNPay qua Backend
+        const paymentRes = await paymentService.createPayment({
+          orderId: createdOrder._id,
+          provider: "VNPAY",
+          returnUrl: `${window.location.origin}/checkout/payment-return`,
+        });
+
+        const paymentUrl = paymentRes?.data?.paymentUrl;
+        if (paymentUrl) {
+          // Chuyển hướng người dùng sang cổng thanh toán VNPay Sandbox
+          window.location.href = paymentUrl;
+          return;
+        } else {
+          throw new Error("Không thể tạo liên kết thanh toán VNPay.");
+        }
       } else {
-        navigate(`/orders/${orderId}`);
+        // COD: Chuyển hướng tới trang chi tiết đơn hàng
+        navigate(`/orders/${createdOrder._id}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Lỗi đặt hàng:", error);
+      setErrorMessage(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Đã xảy ra lỗi khi tạo đơn hàng. Vui lòng thử lại."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -268,7 +306,7 @@ export default function CheckoutPage() {
 
         <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 sm:text-sm">
           <ShieldCheck className="h-4 w-4" />
-          <span className="hidden sm:inline">Thanh toán an toàn 100%</span>
+          <span className="hidden sm:inline">Bảo mật chuẩn VNPay 256-bit</span>
           <span className="sm:hidden">Bảo mật</span>
         </div>
       </header>
@@ -276,14 +314,22 @@ export default function CheckoutPage() {
       {/* Page Title */}
       <div className="mx-auto mb-8 max-w-7xl">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-          Tiến hành đặt hàng
+          Tiến hành thanh toán
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           Vui lòng kiểm tra địa chỉ giao hàng và danh sách sản phẩm trước khi xác nhận.
         </p>
       </div>
 
-      {/* Main Content */}
+      {/* Error Banner */}
+      {errorMessage && (
+        <div className="mx-auto mb-6 max-w-7xl rounded-xl border border-red-200 bg-red-50 p-4 text-xs sm:text-sm text-red-700 flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 shrink-0 text-red-500" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Main Content Form */}
       <form
         onSubmit={handleSubmit}
         className="mx-auto grid w-full max-w-7xl grid-cols-1 items-start gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:gap-8"
@@ -453,7 +499,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* ================= PHƯƠNG THỨC THANH TOÁN ================= */}
+          {/* ================= PHƯƠNG THỨC THANH TOÁN (VNPAY & COD) ================= */}
           <div className="mt-8 border-t border-gray-100 pt-7">
             <div className="mb-4">
               <div className="flex items-center gap-2">
@@ -470,7 +516,127 @@ export default function CheckoutPage() {
             </div>
 
             <div className="space-y-3">
-              {/* COD */}
+              {/* VNPAY SANDBOX OPTION */}
+              <label
+                className={`relative flex cursor-pointer flex-col rounded-xl border p-4 transition-all duration-200 ${
+                  paymentMethod === "VNPAY"
+                    ? "border-[#ee4d2d] bg-orange-50/40 ring-1 ring-[#ee4d2d]"
+                    : "border-gray-200 hover:border-gray-300 bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="VNPAY"
+                    checked={paymentMethod === "VNPAY"}
+                    onChange={() => setPaymentMethod("VNPAY")}
+                    className="h-4 w-4 shrink-0 accent-[#ee4d2d]"
+                  />
+
+                  {/* VNPay Icon Badge */}
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 font-black text-xs">
+                    VNPAY
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-gray-900">
+                        Cổng thanh toán trực tuyến VNPay
+                      </p>
+                      <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">
+                        Sandbox
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Hỗ trợ VNPAY-QR, Thẻ ATM nội địa (NCB, VCB,...), Thẻ Quốc tế (Visa, Master).
+                    </p>
+                  </div>
+
+                  {paymentMethod === "VNPAY" && (
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-[#ee4d2d]" />
+                  )}
+                </div>
+
+                {/* Danh sách logo ngân hàng & hỗ trợ */}
+                <div className="mt-3 ml-7.5 flex flex-wrap items-center gap-1.5">
+                  <span className="rounded border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-bold text-blue-800">
+                    VNPAY-QR
+                  </span>
+                  <span className="rounded border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-bold text-red-600">
+                    NCB
+                  </span>
+                  <span className="rounded border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                    Vietcombank
+                  </span>
+                  <span className="rounded border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                    VISA / Master
+                  </span>
+
+                  {/* Nút bật popup thẻ test */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowSandboxCard(!showSandboxCard);
+                    }}
+                    className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:underline"
+                  >
+                    <Info className="h-3 w-3" />
+                    {showSandboxCard ? "Ẩn thẻ test" : "Xem thông tin thẻ test"}
+                  </button>
+                </div>
+
+                {/* Hộp Thông tin thẻ test Sandbox có nút sao chép 1 chạm */}
+                {showSandboxCard && (
+                  <div className="mt-3 ml-7.5 rounded-xl border border-blue-200 bg-blue-50/80 p-3 text-xs text-blue-900">
+                    <p className="font-bold text-blue-950 mb-1.5">
+                      💳 Thông tin thẻ thanh toán thử nghiệm (VNPay Sandbox):
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded border border-blue-100">
+                        <span>Ngân hàng: <strong>NCB</strong></span>
+                      </div>
+
+                      <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded border border-blue-100">
+                        <span>Số thẻ: <strong>9704198526191432198</strong></span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard("9704198526191432198", "card")}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          {copiedField === "card" ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded border border-blue-100">
+                        <span>Tên chủ thẻ: <strong>NGUYEN VAN A</strong></span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard("NGUYEN VAN A", "name")}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          {copiedField === "name" ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded border border-blue-100">
+                        <span>Ngày phát hành: <strong>07/15</strong> | OTP: <strong>123456</strong></span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard("123456", "otp")}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          {copiedField === "otp" ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </label>
+
+              {/* COD OPTION */}
               <label
                 className={`flex cursor-pointer items-center gap-3.5 rounded-xl border p-4 transition-all duration-200 ${
                   paymentMethod === "COD"
@@ -498,49 +664,6 @@ export default function CheckoutPage() {
                   </p>
                 </div>
                 {paymentMethod === "COD" && (
-                  <CheckCircle2 className="h-5 w-5 shrink-0 text-[#ee4d2d]" />
-                )}
-              </label>
-
-              {/* CARD */}
-              <label
-                className={`flex cursor-pointer items-center gap-3.5 rounded-xl border p-4 transition-all duration-200 ${
-                  paymentMethod === "CARD"
-                    ? "border-[#ee4d2d] bg-orange-50/40 ring-1 ring-[#ee4d2d]"
-                    : "border-gray-200 hover:border-gray-300 bg-white"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="CARD"
-                  checked={paymentMethod === "CARD"}
-                  onChange={() => setPaymentMethod("CARD")}
-                  className="h-4 w-4 shrink-0 accent-[#ee4d2d]"
-                />
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                  <CreditCard className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-gray-900">
-                    Thẻ ngân hàng / Thẻ quốc tế (Visa, Master, Napas)
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Thanh toán trực tuyến qua cổng bảo mật 256-bit SSL.
-                  </p>
-                  <div className="mt-1.5 flex items-center gap-1.5">
-                    <span className="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-blue-700">
-                      VISA
-                    </span>
-                    <span className="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-red-600">
-                      Mastercard
-                    </span>
-                    <span className="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                      Napas
-                    </span>
-                  </div>
-                </div>
-                {paymentMethod === "CARD" && (
                   <CheckCircle2 className="h-5 w-5 shrink-0 text-[#ee4d2d]" />
                 )}
               </label>
@@ -650,7 +773,6 @@ export default function CheckoutPage() {
                             alt={item.name}
                             className="h-full w-full object-contain transition-transform duration-200 hover:scale-105"
                             onError={(e) => {
-                              // Khi ảnh lỗi thì ẩn thẻ img và fallback
                               (e.target as HTMLElement).style.display = "none";
                             }}
                           />
@@ -818,7 +940,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Nút Đặt hàng */}
+          {/* Nút Đặt hàng / Thanh toán */}
           <div className="mt-6">
             <button
               type="submit"
@@ -828,10 +950,14 @@ export default function CheckoutPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Đang xử lý đơn hàng...</span>
+                  <span>
+                    {paymentMethod === "VNPAY"
+                      ? "Đang chuyển sang cổng VNPay Sandbox..."
+                      : "Đang xử lý tạo đơn hàng..."}
+                  </span>
                 </>
-              ) : paymentMethod === "CARD" ? (
-                <span>Tiến hành thanh toán thẻ</span>
+              ) : paymentMethod === "VNPAY" ? (
+                <span>Thanh toán ngay qua VNPay</span>
               ) : (
                 <span>Xác nhận Đặt hàng (COD)</span>
               )}
@@ -839,7 +965,7 @@ export default function CheckoutPage() {
 
             <div className="mt-3.5 flex items-center justify-center gap-1.5 text-center text-[11px] text-gray-400">
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              <span>Giao dịch an toàn & cam kết bảo mật thông tin</span>
+              <span>Giao dịch bảo mật 100% với cổng thanh toán VNPay</span>
             </div>
           </div>
         </section>
