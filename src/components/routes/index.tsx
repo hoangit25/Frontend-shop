@@ -1,9 +1,8 @@
 // src/components/routes/index.tsx
 import { createBrowserRouter } from "react-router-dom";
 import GuestRoute from "./guestRoute";
-import ProtectedRoute from "./protectedRoute"
+import ProtectedRoute from "./protectedRoute";
 import LayoutDefault from "../layouts/layout-default";
-// import ProtectedRoute from "./protectedRoute";
 
 // Import các trang
 import LoginPage from "../pages/auth/login";
@@ -13,8 +12,10 @@ import ForgotPassword from "../pages/auth/forgotPassword/index";
 import ProductsPage from "../pages/products/ProductsPage";
 import ProductDetail from "../pages/products/item";
 import CartPage from "../pages/cart/index";
-import CheckoutPage from "../pages/cart/checkout"
-// import ProfilePage from "../pages/user/profile";
+import CheckoutPage from "../pages/cart/checkout";
+import PaymentReturnPage from "../pages/checkout/payment-return";
+import OrdersPage from "../pages/order/index";
+import OrderDetailPage from "../pages/order/order-detail";
 
 export const router = createBrowserRouter([
   // -------------------------------------------------------------
@@ -33,13 +34,17 @@ export const router = createBrowserRouter([
         element: <ProductsPage />,
       },
       {
-        path:"/product-detail/:id",
-        element:<ProductDetail/>
+        path: "/product-detail/:id",
+        element: <ProductDetail />,
       },
-       {
-        path:"/cart",
-        element:<CartPage/>
-      }
+      {
+        path: "/cart",
+        element: <CartPage />,
+      },
+      {
+        path: "/checkout/payment-return",
+        element: <PaymentReturnPage />,
+      },
     ],
   },
 
@@ -47,7 +52,7 @@ export const router = createBrowserRouter([
   // 2. GUEST ONLY ROUTES: Chỉ người CHƯA đăng nhập mới vào được
   // -------------------------------------------------------------
   {
-    element: <GuestRoute />, // Guard kiểm tra tại đây
+    element: <GuestRoute />,
     children: [
       {
         path: "/login",
@@ -61,25 +66,35 @@ export const router = createBrowserRouter([
         path: "/forgot-password",
         element: <ForgotPassword />,
       },
-     
     ],
   },
 
   // -------------------------------------------------------------
-  // 3. ROUTE 404 (Nếu không khớp trang nào)
+  // 3. PROTECTED ROUTES: Cần đăng nhập
+  // -------------------------------------------------------------
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: "/checkout",
+        element: <CheckoutPage />,
+      },
+      {
+        path: "/orders",
+        element: <OrdersPage />,
+      },
+      {
+        path: "/orders/:id",
+        element: <OrderDetailPage />,
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------
+  // 4. ROUTE 404 (Nếu không khớp trang nào)
   // -------------------------------------------------------------
   {
     path: "*",
     element: <div>404 - Trang không tồn tại</div>,
   },
-
-  {
-    element: <ProtectedRoute />, 
-    children:[
-      {
-        path: "/checkout",
-        element: <CheckoutPage />
-      }
-    ]
-  }
 ]);
