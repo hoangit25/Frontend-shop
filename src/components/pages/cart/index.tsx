@@ -397,14 +397,9 @@ export default function CartPage() {
       <header className="sticky top-0 z-40 border-b border-gray-100 bg-white shadow-xs">
         <div className="mx-auto flex min-h-[60px] sm:min-h-[72px] max-w-[1200px] items-center justify-between gap-4 px-3 sm:px-5">
           <div className="flex items-center gap-3 sm:gap-4">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="text-2xl font-bold tracking-tight text-[#ee4d2d] sm:text-3xl">
-                SHOP
-              </span>
-            </Link>
-            <div className="h-6 w-px bg-[#ee4d2d]" />
+            <div className="h-6 w-px " />
             <h1 className="text-base sm:text-xl font-medium text-[#ee4d2d]">
-              Giỏ Hàng
+             Giỏ Hàng
             </h1>
           </div>
 

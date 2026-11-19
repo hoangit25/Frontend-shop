@@ -4,8 +4,12 @@ import { create } from "zustand";
 const USER_STORAGE_KEY = "auth_user";
 
 export interface AuthUser {
+  id?: string;
+  _id?: string;
   fullName: string;
   email: string;
+  phone?: string;
+  avatar?: string;
 }
 
 interface AuthState {
@@ -26,8 +30,15 @@ function readStoredUser(): AuthUser | null {
     const parsed = JSON.parse(raw) as Partial<AuthUser>;
     const email = parsed.email?.trim() ?? "";
     const fullName = parsed.fullName?.trim() || email;
-    if (!fullName) return null;
-    return { fullName, email };
+    if (!fullName && !email) return null;
+    return {
+      id: parsed.id || parsed._id || "",
+      _id: parsed._id || parsed.id || "",
+      fullName: fullName || "",
+      email: email || "",
+      phone: parsed.phone || "",
+      avatar: parsed.avatar || "",
+    };
   } catch {
     return null;
   }
