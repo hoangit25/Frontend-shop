@@ -35,7 +35,14 @@ export default function LoginPage() {
       const response = await http.post<{
         data: {
           accessToken: string;
-          user: { fullName?: string; email?: string };
+          user: {
+            _id?: string;
+            id?: string;
+            fullName?: string;
+            email?: string;
+            phone?: string;
+            avatar?: string;
+          };
         };
       }>("/auth/login", {
         email: email.trim(),
@@ -45,8 +52,12 @@ export default function LoginPage() {
       const loggedInUser = response.data.data.user;
       const userEmail = loggedInUser.email?.trim() || email.trim();
       const user = {
+        _id: loggedInUser._id || loggedInUser.id || "",
+        id: loggedInUser._id || loggedInUser.id || "",
         fullName: loggedInUser.fullName?.trim() || userEmail,
         email: userEmail,
+        phone: loggedInUser.phone || "",
+        avatar: loggedInUser.avatar || "",
       };
 
       setAccessToken(response.data.data.accessToken);

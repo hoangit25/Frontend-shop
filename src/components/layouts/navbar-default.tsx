@@ -64,10 +64,14 @@ export default function Navbar() {
 
             {isLoggedIn ? (
               <>
-                <span className="font-bold truncate max-w-36">
+                <Link
+                  to="/profile"
+                  className="font-bold truncate max-w-36 hover:underline flex items-center"
+                  title="Thông tin cá nhân"
+                >
                   <i className="far fa-user mr-1" />
-                  {user?.fullName}
-                </span>
+                  {user?.fullName || "Tài khoản"}
+                </Link>
 
                 <button
                   type="button"
@@ -153,10 +157,13 @@ export default function Navbar() {
         <div className="md:hidden flex items-center justify-between pb-3 text-xs">
           {isLoggedIn ? (
             <>
-              <span className="truncate max-w-[60%]">
+              <Link
+                to="/profile"
+                className="truncate max-w-[60%] hover:underline flex items-center"
+              >
                 <i className="far fa-user mr-1" />
-                {user?.fullName}
-              </span>
+                {user?.fullName || "Tài khoản"}
+              </Link>
 
               <button
                 onClick={handleLogout}

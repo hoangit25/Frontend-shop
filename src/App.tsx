@@ -32,14 +32,44 @@ export default function App() {
         }
 
         try {
-          const profile = await http.get<{
-            data: { fullName?: string; email?: string };
-          }>("/users/me");
-          const profileUser = profile.data.data;
-          const email = profileUser.email?.trim() || storedUser?.email || "";
-          const fullName = profileUser.fullName?.trim() || email;
-          if (fullName) {
-            setUser({ fullName, email });
+          const profile = await http
+            .get<{
+              data: {
+                _id?: string;
+                id?: string;
+                fullName?: string;
+                email?: string;
+                phone?: string;
+                avatar?: string;
+              };
+            }>("/auth/profile")
+            .catch(() =>
+              http.get<{
+                data: {
+                  _id?: string;
+                  id?: string;
+                  fullName?: string;
+                  email?: string;
+                  phone?: string;
+                  avatar?: string;
+                };
+              }>("/users/me")
+            );
+
+          const profileUser = profile?.data?.data;
+          if (profileUser) {
+            const email = profileUser.email?.trim() || storedUser?.email || "";
+            const fullName = profileUser.fullName?.trim() || email;
+            if (fullName || email) {
+              setUser({
+                _id: profileUser._id || profileUser.id || storedUser?._id || "",
+                id: profileUser._id || profileUser.id || storedUser?.id || "",
+                fullName,
+                email,
+                phone: profileUser.phone || storedUser?.phone || "",
+                avatar: profileUser.avatar || storedUser?.avatar || "",
+              });
+            }
           }
         } catch {
           if (!storedUser) {

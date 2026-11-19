@@ -14,8 +14,10 @@ import ProductDetail from "../pages/products/item";
 import CartPage from "../pages/cart/index";
 import CheckoutPage from "../pages/cart/checkout";
 import PaymentReturnPage from "../pages/checkout/payment-return";
-import OrdersPage from "../pages/order/index";
 import OrderDetailPage from "../pages/order/order-detail";
+import UserLayout from "../layouts/information-user-default";
+import ProfilePage from "../pages/user/index";
+import OrderListUserId from "../pages/order/order-list-userId";
 
 export const router = createBrowserRouter([
   // -------------------------------------------------------------
@@ -80,8 +82,17 @@ export const router = createBrowserRouter([
         element: <CheckoutPage />,
       },
       {
-        path: "/orders",
-        element: <OrdersPage />,
+        element: <UserLayout />,
+        children: [
+          {
+            path: "/profile",
+            element: <ProfilePage />,
+          },
+          {
+            path: "/orders",
+            element: <OrderListUserId />,
+          },
+        ],
       },
       {
         path: "/orders/:id",
