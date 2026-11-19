@@ -231,43 +231,45 @@ const OrderListUserId: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => {
-            const itemCount = order.items.reduce(
-              (acc, item) => acc + (item.quantity || 1),
+            const items = Array.isArray(order?.items) ? order.items : [];
+            const itemCount = items.reduce(
+              (acc, item) => acc + (item?.quantity || 1),
               0
             );
 
             return (
               <div
-                key={order._id}
+                key={order?._id || Math.random()}
                 className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs transition hover:border-gray-300"
               >
                 {/* Header card */}
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-gray-50/50 px-5 py-3.5">
                   <div className="flex items-center gap-3">
                     <span className="font-bold text-gray-900 text-sm">
-                      Mã đơn: #{order.orderCode}
+                      Mã đơn: #{order?.orderCode || "---"}
                     </span>
-                    {getStatusBadge(order.orderStatus, order.paymentStatus)}
+                    {getStatusBadge(order?.orderStatus || "", order?.paymentStatus || "")}
                   </div>
 
                   <div className="flex items-center gap-1.5 text-xs text-gray-500">
                     <Calendar className="h-3.5 w-3.5" />
                     <span>
-                      {new Date(order.createdAt).toLocaleDateString("vi-VN")}{" "}
-                      {new Date(order.createdAt).toLocaleTimeString("vi-VN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {order?.createdAt
+                        ? `${new Date(order.createdAt).toLocaleDateString("vi-VN")} ${new Date(order.createdAt).toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}`
+                        : "---"}
                     </span>
                   </div>
                 </div>
 
                 {/* Items */}
                 <div className="divide-y divide-gray-100 px-5">
-                  {order.items.map((item, idx) => {
+                  {items.map((item, idx) => {
                     const itemImg =
-                      item.image ||
-                      (typeof item.productId === "object"
+                      item?.image ||
+                      (typeof item?.productId === "object"
                         ? item.productId?.image
                         : "");
 
@@ -277,7 +279,7 @@ const OrderListUserId: React.FC = () => {
                           {itemImg ? (
                             <img
                               src={itemImg}
-                              alt={item.name}
+                              alt={item?.name || "Product"}
                               className="h-full w-full object-contain"
                             />
                           ) : (
@@ -289,9 +291,9 @@ const OrderListUserId: React.FC = () => {
 
                         <div className="min-w-0 flex-1">
                           <h4 className="text-sm font-medium text-gray-800 line-clamp-1">
-                            {item.name}
+                            {item?.name || "Sản phẩm"}
                           </h4>
-                          {item.sku && (
+                          {item?.sku && (
                             <p className="text-xs text-gray-400 mt-0.5">
                               SKU: {item.sku}
                             </p>
@@ -299,17 +301,17 @@ const OrderListUserId: React.FC = () => {
                           <div className="mt-1 text-xs text-gray-500">
                             Số lượng:{" "}
                             <span className="font-semibold text-gray-700">
-                              {item.quantity}
+                              {item?.quantity || 1}
                             </span>
                           </div>
                         </div>
 
                         <div className="text-right shrink-0">
                           <p className="text-sm font-semibold text-gray-900">
-                            {formatPrice(item.subtotal || item.price * item.quantity)}
+                            {formatPrice(item?.subtotal || (item?.price || 0) * (item?.quantity || 1))}
                           </p>
                           <p className="text-xs text-gray-400">
-                            {formatPrice(item.price)} / sp
+                            {formatPrice(item?.price || 0)} / sp
                           </p>
                         </div>
                       </div>
@@ -322,19 +324,19 @@ const OrderListUserId: React.FC = () => {
                   <div className="flex items-center gap-4 text-xs">
                     <div className="flex items-center gap-1.5 text-gray-500">
                       <CreditCard className="h-3.5 w-3.5" />
-                      <span>{order.paymentMethod === "VNPAY" ? "VNPay" : "COD"}</span>
+                      <span>{order?.paymentMethod === "VNPAY" ? "VNPay" : "COD"}</span>
                     </div>
 
                     <div>
                       <span className="text-gray-500">Tổng ({itemCount} món): </span>
                       <strong className="text-base font-bold text-green-700">
-                        {formatPrice(order.pricing?.totalAmount || 0)}
+                        {formatPrice(order?.pricing?.totalAmount || 0)}
                       </strong>
                     </div>
                   </div>
 
                   <Link
-                    to={`/orders/${order._id}`}
+                    to={`/orders/${order?._id}`}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-xs transition hover:border-green-600 hover:text-green-700"
                   >
                     <span>Chi tiết đơn</span>

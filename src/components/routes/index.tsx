@@ -14,7 +14,6 @@ import ProductDetail from "../pages/products/item";
 import CartPage from "../pages/cart/index";
 import CheckoutPage from "../pages/cart/checkout";
 import PaymentReturnPage from "../pages/checkout/payment-return";
-import OrdersPage from "../pages/order/index";
 import OrderDetailPage from "../pages/order/order-detail";
 import UserLayout from "../layouts/information-user-default";
 import ProfilePage from "../pages/user/index";
