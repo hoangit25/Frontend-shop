@@ -1,9 +1,7 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { productService } from '../../api/products/product-service';
 import type { ProductOption, ProductVariant, StockAdjustmentPayload } from '../../api/products/product-service';
-import { categoryService } from '../../api/categories/category-service';
-import type { Category } from '../../api/categories/category-service';
-import { productKeys, categoryKeys } from './product.keys';
+import { productKeys } from './product.keys';
 import type {
   Product,
   BackendResponse,
