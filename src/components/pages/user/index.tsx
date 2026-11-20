@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { User, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useAuthStore } from "../../store/auth-store";
 import { authService } from "../../api/auth/auth-service";
@@ -10,7 +11,9 @@ interface ProfileForm {
 }
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const setUser = useAuthStore((state) => state.setUser);
 
   // Khởi tạo các input: nếu có thông tin thì điền, không có thì để trống ("")
@@ -29,14 +32,18 @@ const ProfilePage = () => {
 
   // Tự động đồng bộ và lấy thông tin mới nhất từ auth-store và API backend
   useEffect(() => {
-    if (user) {
-      setFormData({
-        fullName: user.fullName || "",
-        phoneNumber: user.phone || "",
-        email: user.email || "",
-      });
-      setAvatar(user.avatar || "");
+    // Nếu chưa đăng nhập thành công => chuyển hướng về trang login
+    if (!accessToken || !user) {
+      navigate("/login", { replace: true, state: { from: { pathname: "/profile" } } });
+      return;
     }
+
+    setFormData({
+      fullName: user.fullName || "",
+      phoneNumber: user.phone || "",
+      email: user.email || "",
+    });
+    setAvatar(user.avatar || "");
 
     const fetchLatestProfile = async () => {
       try {
