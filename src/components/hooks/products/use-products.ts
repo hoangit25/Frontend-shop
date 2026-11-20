@@ -1,9 +1,7 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { productService } from '../../api/products/product-service';
 import type { ProductOption, ProductVariant, StockAdjustmentPayload } from '../../api/products/product-service';
-import { categoryService } from '../../api/categories/category-service';
-import type { Category } from '../../api/categories/category-service';
-import { productKeys, categoryKeys } from './product.keys';
+import { productKeys } from './product.keys';
 import type {
   Product,
   BackendResponse,
@@ -35,13 +33,8 @@ export function useProductDetail(idOrSlug: string) {
   });
 }
 
-// ── 3. QUERY: Lấy Category ──
-export function useCategories() {
-  return useQuery<BackendResponse<Category[]>>({
-    queryKey: categoryKeys.lists(),
-    queryFn: () => categoryService.getAllCategories(),
-  });
-}
+// ── 3. QUERY: Lấy Category (re-export từ hooks/categories) ──
+export { useCategories, useCategoryDetail } from '../categories';
 
 // ── 4. QUERY: Lấy Brand ──
 export function useBrands() {
