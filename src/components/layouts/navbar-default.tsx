@@ -15,6 +15,14 @@ export default function Navbar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isLoggedIn = Boolean(accessToken && user);
 
+  const handleProfileNavigation = () => {
+    if (isLoggedIn) {
+      navigate("/profile");
+    } else {
+      navigate("/login", { state: { from: { pathname: "/profile" } } });
+    }
+  };
+
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
@@ -64,14 +72,15 @@ export default function Navbar() {
 
             {isLoggedIn ? (
               <>
-                <Link
-                  to="/profile"
-                  className="font-bold truncate max-w-36 hover:underline flex items-center"
+                <button
+                  type="button"
+                  onClick={handleProfileNavigation}
+                  className="font-bold truncate max-w-36 hover:underline flex items-center bg-transparent border-none text-white cursor-pointer p-0 text-xs"
                   title="Thông tin cá nhân"
                 >
                   <i className="far fa-user mr-1" />
-                  {user?.fullName || "Tài khoản"}
-                </Link>
+                  <span className="truncate">{user?.fullName || "Tài khoản"}</span>
+                </button>
 
                 <button
                   type="button"
@@ -84,6 +93,16 @@ export default function Navbar() {
               </>
             ) : (
               <>
+                <button
+                  type="button"
+                  onClick={handleProfileNavigation}
+                  className="font-bold hover:underline flex items-center gap-1 bg-transparent border-none text-white cursor-pointer p-0 text-xs opacity-90 hover:opacity-100"
+                  title="Đăng nhập tài khoản"
+                >
+                  <i className="far fa-user mr-1" />
+                  <span>Tài khoản</span>
+                </button>
+                <span className="opacity-30">|</span>
                 <NavLink to="/register" className="font-bold">
                   Sign Up
                 </NavLink>
@@ -157,13 +176,14 @@ export default function Navbar() {
         <div className="md:hidden flex items-center justify-between pb-3 text-xs">
           {isLoggedIn ? (
             <>
-              <Link
-                to="/profile"
-                className="truncate max-w-[60%] hover:underline flex items-center"
+              <button
+                type="button"
+                onClick={handleProfileNavigation}
+                className="truncate max-w-[60%] hover:underline flex items-center gap-1 text-white bg-transparent border-none p-0 text-xs font-medium cursor-pointer"
               >
                 <i className="far fa-user mr-1" />
-                {user?.fullName || "Tài khoản"}
-              </Link>
+                <span className="truncate">{user?.fullName || "Tài khoản"}</span>
+              </button>
 
               <button
                 onClick={handleLogout}
@@ -174,7 +194,15 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <div className="flex gap-4">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={handleProfileNavigation}
+                className="hover:underline flex items-center gap-1 text-white bg-transparent border-none p-0 text-xs font-medium cursor-pointer"
+              >
+                <i className="far fa-user mr-1" />
+                <span>Tài khoản</span>
+              </button>
               <NavLink to="/register">Đăng ký</NavLink>
               <NavLink to="/login">Đăng nhập</NavLink>
             </div>
