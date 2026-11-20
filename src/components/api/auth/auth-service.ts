@@ -8,6 +8,11 @@ export interface UpdateProfilePayload {
   avatar?: string;
 }
 
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export const authService = {
   // Lấy thông tin cá nhân của người dùng hiện tại
   getProfile: async () => {
@@ -31,6 +36,14 @@ export const authService = {
         payload
       );
     }
+  },
+
+  // Đổi mật khẩu (đã đăng nhập)
+  changePassword: async (payload: ChangePasswordPayload) => {
+    return await request.put<BackendResponse<{ message: string }>, ChangePasswordPayload>(
+      "/auth/change-password",
+      payload
+    );
   },
 
   // Đăng xuất
