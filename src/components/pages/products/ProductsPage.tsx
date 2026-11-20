@@ -60,6 +60,24 @@ export default function ProductsPage() {
   const products = response?.data || [];
   const meta = response?.meta;
 
+  // Determine active category name from URL param or first product's category
+  const activeCategoryName = (() => {
+    // Priority 1: categoryId from URL params
+    if (categoryParam) {
+      const cat = categories.find((c) => c._id === categoryParam);
+      if (cat) return cat.name;
+    }
+    // Priority 2: infer from first product's categoryId when searching by keyword
+    if (searchKeyword && products.length > 0) {
+      const firstProductCatId = products[0].categoryId;
+      if (firstProductCatId) {
+        const cat = categories.find((c) => c._id === firstProductCatId);
+        if (cat) return cat.name;
+      }
+    }
+    return null;
+  })();
+
   // Update URL params
   const updateParam = (key: string, value: string) => {
     const newParams = new URLSearchParams(searchParams);
@@ -227,9 +245,26 @@ export default function ProductsPage() {
 
         <i className="fas fa-chevron-right text-[9px] text-gray-400" />
 
-        <span className="text-gray-800 font-medium">
-          Tất cả sản phẩm
-        </span>
+        {activeCategoryName ? (
+          <>
+            <Link
+              to="/products"
+              className="hover:text-orange-500 transition-colors"
+            >
+              Tất cả sản phẩm
+            </Link>
+
+            <i className="fas fa-chevron-right text-[9px] text-gray-400" />
+
+            <span className="text-gray-800 font-medium">
+              {activeCategoryName}
+            </span>
+          </>
+        ) : (
+          <span className="text-gray-800 font-medium">
+            Tất cả sản phẩm
+          </span>
+        )}
       </nav>
 
       {/* Filter & Search */}
