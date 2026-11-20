@@ -35,13 +35,8 @@ export function useProductDetail(idOrSlug: string) {
   });
 }
 
-// ── 3. QUERY: Lấy Category ──
-export function useCategories() {
-  return useQuery<BackendResponse<Category[]>>({
-    queryKey: categoryKeys.lists(),
-    queryFn: () => categoryService.getAllCategories(),
-  });
-}
+// ── 3. QUERY: Lấy Category (re-export từ hooks/categories) ──
+export { useCategories, useCategoryDetail } from '../categories';
 
 // ── 4. QUERY: Lấy Brand ──
 export function useBrands() {

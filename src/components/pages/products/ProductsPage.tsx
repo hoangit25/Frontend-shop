@@ -1,13 +1,16 @@
 
 import { useState, useRef } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ProductItem from "./product-list";
 import Pagination from "./pagination";
-import { useProducts, useCategories } from "../../hooks/products";
+import { useProducts } from "../../hooks/products";
+import { useCategories } from "../../hooks/categories";
 import { useAddToCart } from "../../hooks/cart";
 import type { Product } from "../../types/product.type";
 
 export default function ProductsPage() {
+  const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const pageParam = Math.max(
@@ -32,6 +35,12 @@ export default function ProductsPage() {
 
   const limit = 20;
 
+  // Categories query
+  const { categories } = useCategories();
+
+  const matchedCatBySlug = slug ? categories.find((c) => c.slug === slug) : null;
+  const effectiveCategoryId = categoryParam || matchedCatBySlug?._id || slug || "";
+
   // Products query
   const {
     data: response,
@@ -43,16 +52,11 @@ export default function ProductsPage() {
   } = useProducts({
     page: pageParam,
     limit,
-    categoryId: categoryParam || undefined,
+    categoryId: effectiveCategoryId || undefined,
     sortBy: sortParam,
     sortOrder: orderParam,
     keyword: searchKeyword || undefined,
   });
-
-  // Categories query
-  const { data: catResponse } = useCategories();
-
-  const categories = catResponse?.data || [];
 
   // Add to cart mutation
   const addToCartMutation = useAddToCart();
@@ -60,11 +64,13 @@ export default function ProductsPage() {
   const products = response?.data || [];
   const meta = response?.meta;
 
-  // Determine active category name from URL param or first product's category
+  // Determine active category name from URL param/slug or first product's category
   const activeCategoryName = (() => {
-    // Priority 1: categoryId from URL params
-    if (categoryParam) {
-      const cat = categories.find((c) => c._id === categoryParam);
+    // Priority 1: effective category from URL params or slug
+    if (effectiveCategoryId) {
+      const cat = categories.find(
+        (c) => c._id === effectiveCategoryId || c.slug === effectiveCategoryId
+      );
       if (cat) return cat.name;
     }
     // Priority 2: infer from first product's categoryId when searching by keyword
@@ -299,10 +305,26 @@ export default function ProductsPage() {
           >
             {/* Category */}
             <select
-              value={categoryParam}
-              onChange={(e) =>
-                updateParam("categoryId", e.target.value)
+              value={
+                categories.find(
+                  (c) =>
+                    c._id === effectiveCategoryId ||
+                    c.slug === effectiveCategoryId
+                )?._id || ""
               }
+              onChange={(e) => {
+                const val = e.target.value;
+                if (!val) {
+                  navigate("/products");
+                } else {
+                  const cat = categories.find((c) => c._id === val);
+                  if (cat) {
+                    navigate(`/category/${cat.slug}`);
+                  } else {
+                    updateParam("categoryId", val);
+                  }
+                }
+              }}
               className="
                 w-full sm:w-auto
                 min-w-0 sm:min-w-[180px]
@@ -530,7 +552,7 @@ export default function ProductsPage() {
           <button
             type="button"
             onClick={() => {
-              setSearchParams(new URLSearchParams());
+              navigate("/products");
             }}
             className="
               mt-4
