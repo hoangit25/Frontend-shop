@@ -152,11 +152,11 @@ export default function OrderDetailPage() {
         {/* Top Navigation */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <Link
-            to="/"
+            to={-1 as any}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 transition hover:text-[#ee4d2d]"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Tiếp tục mua sắm</span>
+            <span>Back</span>
           </Link>
 
           <button

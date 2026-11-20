@@ -123,7 +123,7 @@ const OrderListUserId: React.FC = () => {
     return orders.filter((order) => {
       if (activeTab === "PENDING_PAY") {
         return (
-          order.paymentStatus === "PENDING" && order.orderStatus !== "CANCELLED"
+          order.paymentStatus === "PENDING" || order.paymentStatus === "FAILED" && order.orderStatus !== "CANCELLED"
         );
       }
       if (activeTab === "PROCESSING") {
