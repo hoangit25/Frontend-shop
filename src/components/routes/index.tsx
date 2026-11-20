@@ -96,12 +96,12 @@ export const router = createBrowserRouter([
           {
             path: "/change-password",
             element: <ChangePassword />
+          },
+          {
+            path: "/orders/:id",
+            element: <OrderDetailPage />,
           }
         ],
-      },
-      {
-        path: "/orders/:id",
-        element: <OrderDetailPage />,
       }
     ],
   },
