@@ -1,6 +1,7 @@
 import axios from "axios";
 import type { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "../store/auth-store";
+import {refreshAccessToken} from "./request-promise"
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -29,25 +30,6 @@ http.interceptors.request.use((config) => {
 
   return config;
 });
-
-let refreshPromise: Promise<string> | null = null;
-
-const refreshAccessToken = () => {
-  if (!refreshPromise) {
-    refreshPromise = http
-      .post<{ data: { accessToken: string } }>("/auth/refresh", null)
-      .then((res) => {
-        const accessToken = res.data.data.accessToken;
-        useAuthStore.getState().setAccessToken(accessToken);
-        return accessToken;
-      })
-      .finally(() => {
-        refreshPromise = null;
-      });
-  }
-
-  return refreshPromise;
-};
 
 http.interceptors.response.use(
   (res) => res,

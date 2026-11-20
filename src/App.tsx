@@ -1,10 +1,10 @@
 // src/App.tsx
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { RouterProvider } from "react-router-dom";
 import { readStoredUser, useAuthStore } from "./components/store/auth-store";
 import { http } from "./components/utils/axios-config";
 import { router } from "./components/routes/index"; // Router của bạn
-
+import { refreshAccessToken } from "./components/utils/request-promise"
 export default function App() {
   const isInitialized = useAuthStore((state) => state.isInitialized);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
@@ -12,19 +12,20 @@ export default function App() {
   const setInitialized = useAuthStore((state) => state.setInitialized);
   const clearAuth = useAuthStore((state) => state.clearAuth);
 
+  const hasInitializedRef = useRef(false);
   useEffect(() => {
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
     const initAuth = async () => {
       try {
         const isLogin = localStorage.getItem('is_login')
-        if(!isLogin){
+        if (!isLogin) {
           return;
         }
         // Gọi API ngầm đến backend lấy accessToken mới từ refreshToken trong cookie
-        const res = await http.post<{ data: { accessToken: string } }>(
-          "/auth/refresh",
-          null
-        );
-        setAccessToken(res.data.data.accessToken);
+        const accessToken = await refreshAccessToken();
+        setAccessToken(accessToken);
 
         const storedUser = readStoredUser();
         if (storedUser) {
@@ -53,7 +54,7 @@ export default function App() {
                   phone?: string;
                   avatar?: string;
                 };
-              }>("/users/me")
+              }>("/user/me")
             );
 
           const profileUser = profile?.data?.data;
