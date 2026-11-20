@@ -62,7 +62,7 @@ const Sidebar = () => {
         </div>
 
         <span className="text-2xl font-bold tracking-tight text-green-700">
-          Thiên Đô
+          Account
         </span>
       </Link>
 
