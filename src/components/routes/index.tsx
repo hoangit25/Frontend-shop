@@ -18,6 +18,7 @@ import OrderDetailPage from "../pages/order/order-detail";
 import UserLayout from "../layouts/information-user-default";
 import ProfilePage from "../pages/user/index";
 import OrderListUserId from "../pages/order/order-list-userId";
+import ChangePassword from "../pages/auth/change-password/index"
 
 export const router = createBrowserRouter([
   // -------------------------------------------------------------
@@ -92,12 +93,16 @@ export const router = createBrowserRouter([
             path: "/orders",
             element: <OrderListUserId />,
           },
+          {
+            path: "/change-password",
+            element: <ChangePassword />
+          }
         ],
       },
       {
         path: "/orders/:id",
         element: <OrderDetailPage />,
-      },
+      }
     ],
   },
 

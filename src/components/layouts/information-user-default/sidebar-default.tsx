@@ -1,4 +1,4 @@
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import {
   UserRound,
   Lock,
@@ -8,13 +8,9 @@ import {
   LogOut,
   ShoppingBag,
 } from "lucide-react";
-import { useAuthStore } from "../../store/auth-store";
 import { authService } from "../../api/auth/auth-service";
 
 const Sidebar = () => {
-  const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
-  const clearAuth = useAuthStore((state) => state.clearAuth);
 
   const handleLogout = async () => {
     try {
@@ -22,8 +18,13 @@ const Sidebar = () => {
     } catch {
       // Continue client logout even if server fails
     } finally {
-      clearAuth();
-      navigate("/login", { replace: true });
+      // Xóa localStorage trực tiếp, KHÔNG gọi clearAuth()
+      // vì clearAuth() trigger Zustand set() → React re-render
+      // → ProtectedRoute redirect /login trước khi navigate kịp chạy
+      localStorage.removeItem("is_login");
+      localStorage.removeItem("auth_user");
+      // Hard navigate reload trang, Zustand reset tự nhiên
+      window.location.replace("/");
     }
   };
 
@@ -65,29 +66,6 @@ const Sidebar = () => {
           Account
         </span>
       </Link>
-
-      {/* User brief card */}
-      <div className="mx-4 mb-2 flex items-center gap-3 rounded-xl bg-gray-50 p-3 border border-gray-100">
-        {user?.avatar ? (
-          <img
-            src={user.avatar}
-            alt="Avatar"
-            className="h-10 w-10 shrink-0 rounded-full border border-gray-200 object-cover"
-          />
-        ) : (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 font-bold">
-            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-800">
-            {user?.fullName || "Chưa đặt tên"}
-          </p>
-          <p className="truncate text-xs text-gray-500">
-            {user?.email || "Người dùng"}
-          </p>
-        </div>
-      </div>
 
       {/* Menu */}
       <div className="mt-2 flex-1">
