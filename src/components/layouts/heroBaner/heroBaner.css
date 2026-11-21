@@ -1,0 +1,24 @@
+.hero-banner-swiper .swiper-pagination {
+  bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.hero-banner-swiper .hero-bullet {
+  width: 8px;
+  height: 8px;
+  margin: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.65);
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.hero-banner-swiper .hero-bullet-active {
+  width: 22px;
+  border-radius: 999px;
+  border-color: #f15a24;
+  background: #f15a24;
+}
